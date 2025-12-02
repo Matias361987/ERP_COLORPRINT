@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>BI Dashboard - ColorPrint</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body { background-color: #f0f2f5; font-family: 'Roboto', sans-serif; }
+        .navbar-custom { background: linear-gradient(90deg, #1a1a1a, #2c3e50); }
+        .nav-link { color: rgba(255,255,255,0.7); }
+        .nav-link.active { color: #ffca2c !important; font-weight: bold; }
+
+        .kpi-card { border: none; border-radius: 12px; background: white; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: space-between; transition: transform 0.2s; }
+        .kpi-card:hover { transform: translateY(-5px); }
+        .kpi-icon { width: 50px; height: 50px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+        .kpi-title { font-size: 0.8rem; color: #6c757d; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+        .kpi-value { font-size: 1.8rem; font-weight: 800; color: #212529; }
+        .bg-icon-blue { background-color: #e7f1ff; color: #0d6efd; }
+        .bg-icon-green { background-color: #d1e7dd; color: #198754; }
+        .bg-icon-purple { background-color: #e0cffc; color: #6f42c1; }
+
+        .chart-container { background: white; border-radius: 15px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); height: 100%; }
+        .chart-title { font-size: 0.9rem; font-weight: 700; color: #495057; text-transform: uppercase; margin-bottom: 20px; text-align: center; border-bottom: 1px solid #f0f0f0; padding-bottom: 10px;}
+
+        .btn-filter { border: 1px solid #dee2e6; color: #6c757d; background: white; font-size: 0.85rem; font-weight: 600; padding: 5px 15px; border-radius: 50px; }
+        .btn-filter:hover { background: #f8f9fa; color: #000; }
+        .btn-filter.active { background: #212529; color: #ffca2c; border-color: #212529; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-custom navbar-dark mb-4 shadow-sm">
+    <div class="container-fluid px-4">
+
+        <a class="navbar-brand p-0" href="#">
+            <img th:src="@{/images/logocolorprint.png}" alt="ColorPrint" style="height: 40px; object-fit: contain;">
+        </a>
+
+        <div class="navbar-nav ms-auto">
+            <a class="nav-link me-3" href="/ingreso">INGRESO</a>
+            <a class="nav-link me-3" href="/pauta">PAUTA</a>
+            <a class="nav-link me-3" href="/estadisticas">ESTADÍSTICAS</a>
+            <a class="nav-link me-3" href="/inventario">INVENTARIO</a>
+            <a class="nav-link me-3" href="/calendario">INSTALACIONES</a>
+
+            <form th:action="@{/logout}" method="post" class="d-inline">
+                <button class="btn nav-link border-0 bg-transparent fw-bold" style="font-size: 0.85rem;">SALIR</button>
+            </form>
+        </div>
+    </div>
+</nav>
+
+    <div class="d-flex justify-content-center gap-2 mb-4">
+        <a href="/estadisticas?periodo=mes_actual" class="btn btn-filter" th:classappend="${periodoActual == 'mes_actual'} ? 'active'">MES ACTUAL</a>
+        <a href="/estadisticas?periodo=mes_anterior" class="btn btn-filter" th:classappend="${periodoActual == 'mes_anterior'} ? 'active'">MES ANTERIOR</a>
+        <a href="/estadisticas?periodo=anio_actual" class="btn btn-filter" th:classappend="${periodoActual == 'anio_actual'} ? 'active'">ESTE AÑO</a>
+        <a href="/estadisticas?periodo=todo" class="btn btn-filter" th:classappend="${periodoActual == 'todo'} ? 'active'">HISTÓRICO TOTAL</a>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="kpi-card">
+                <div><div class="kpi-title">Producción (m²)</div><div class="kpi-value" th:text="${#numbers.formatDecimal(kpiTotalM2, 1, 0) + ' m²'}">0 m²</div></div>
+                <div class="kpi-icon bg-icon-blue"><i class="fa-solid fa-layer-group"></i></div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="kpi-card">
+                <div><div class="kpi-title">Órdenes Finalizadas</div><div class="kpi-value" th:text="${kpiTotalOrdenes}">0</div></div>
+                <div class="kpi-icon bg-icon-green"><i class="fa-solid fa-check-double"></i></div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="kpi-card">
+                <div><div class="kpi-title">Promedio por Orden</div><div class="kpi-value" th:text="${#numbers.formatDecimal(kpiPromedio, 1, 1) + ' m²'}">0.0 m²</div></div>
+                <div class="kpi-icon bg-icon-purple"><i class="fa-solid fa-ruler-combined"></i></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="chart-container">
+                <div class="chart-title">Consumo de Material (m²)</div>
+                <div style="height: 250px;"><canvas id="chartSustratos"></canvas></div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="chart-container">
+                <div class="chart-title">Carga por Máquina</div>
+                <div style="height: 250px;"><canvas id="chartMaquinas"></canvas></div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="chart-container">
+                <div class="chart-title">Calidad Impresión</div>
+                <div style="height: 250px;"><canvas id="chartCalidad"></canvas></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="chart-container">
+                <div class="chart-title">TOP 5 MEJORES CLIENTES (Volumen m²)</div>
+                <div style="height: 200px;"><canvas id="chartClientes"></canvas></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    const labelsSust = [[${labelSustratos}]];
+    const dataSust = [[${dataSustratos}]];
+    const labelsMaq = [[${labelMaquinas}]];
+    const dataMaq = [[${dataMaquinas}]];
+    const labelsCal = [[${labelCalidad}]];
+    const dataCal = [[${dataCalidad}]];
+    const labelsCli = [[${labelClientes}]]; // NUEVO
+    const dataCli = [[${dataClientes}]];     // NUEVO
+
+    new Chart(document.getElementById('chartSustratos'), {
+        type: 'doughnut',
+        data: { labels: labelsSust, datasets: [{ data: dataSust, backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b'], borderWidth: 2, borderColor: '#ffffff' }] },
+        options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { usePointStyle: true } } } }
+    });
+
+    new Chart(document.getElementById('chartMaquinas'), {
+        type: 'bar',
+        data: { labels: labelsMaq, datasets: [{ label: 'Metros Cuadrados', data: dataMaq, backgroundColor: '#2c3e50', borderRadius: 4, barPercentage: 0.6 }] },
+        options: { maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { color: '#f3f3f3' } }, x: { grid: { display: false } } }, plugins: { legend: { display: false } } }
+    });
+
+    new Chart(document.getElementById('chartCalidad'), {
+        type: 'pie',
+        data: { labels: labelsCal, datasets: [{ data: dataCal, backgroundColor: ['#6f42c1', '#adb5bd'], borderWidth: 2, borderColor: '#ffffff' }] },
+        options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { usePointStyle: true } } } }
+    });
+
+    // NUEVO: GRÁFICO HORIZONTAL DE CLIENTES
+    new Chart(document.getElementById('chartClientes'), {
+        type: 'bar',
+        data: {
+            labels: labelsCli,
+            datasets: [{
+                label: 'Volumen Total (m²)',
+                data: dataCli,
+                backgroundColor: '#198754', // Verde corporativo
+                borderRadius: 4,
+                barPercentage: 0.5
+            }]
+        },
+        options: {
+            indexAxis: 'y', // ESTO LO HACE HORIZONTAL
+            maintainAspectRatio: false,
+            scales: { x: { beginAtZero: true } },
+            plugins: { legend: { display: false } }
+        }
+    });
+</script>
+</body>
+</html>
+</html>

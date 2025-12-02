@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Pauta - ColorPrint</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* ESTILOS GENERALES */
+        body { background-color: #f4f6f8; font-family: 'Roboto', sans-serif; font-size: 0.85rem; color: #343a40; }
+
+        /* NAVBAR */
+        .navbar-custom { background: linear-gradient(90deg, #1a1a1a, #2c3e50); color: white; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+        .nav-link { color: rgba(255,255,255,0.7); transition: color 0.2s; }
+        .nav-link.active { color: #ffca2c !important; font-weight: 800; }
+        .nav-link:hover { color: white; }
+
+        /* PESTAÑAS (TABS) */
+        .nav-pills .nav-link {
+            font-size: 0.75rem; font-weight: 600; color: #6c757d;
+            border: 1px solid #e9ecef; margin-right: 4px; background: white;
+            transition: all 0.2s ease;
+        }
+        .nav-pills .nav-link:hover { background-color: #f8f9fa; border-color: #dee2e6; }
+        .nav-pills .nav-link.active { background-color: #212529; color: #ffca2c; border-color: #212529; transform: translateY(-1px); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+
+        /* Botón Stand By Rojo */
+        .nav-link-standby { color: #dc3545 !important; border-color: #f8d7da !important; }
+        .nav-link-standby.active { background-color: #dc3545 !important; color: white !important; }
+
+        /* BADGES */
+        .badge-res-alta { background-color: #6f42c1; color: white; }
+        .badge-res-baja { background-color: #adb5bd; color: white; }
+
+        /* --- ESTILO DEL MENÚ DESPLEGABLE (LIMPIO Y CON SCROLL) --- */
+        .custom-dropdown-menu {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            padding: 10px;
+            min-width: 220px;
+            z-index: 9999 !important; /* Siempre encima */
+            max-height: 280px;        /* Altura máxima */
+            overflow-y: auto;         /* Scroll si es muy largo */
+        }
+        .dropdown-header-custom {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #adb5bd;
+            font-weight: 800;
+            padding: 8px 12px 2px;
+            border-bottom: 1px solid #f0f0f0;
+            margin-bottom: 4px;
+        }
+        .dropdown-item-custom {
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-weight: 500;
+            font-size: 0.85rem;
+            color: #495057;
+            transition: all 0.2s;
+            background: transparent;
+            border: none;
+            width: 100%;
+            text-align: left;
+            display: block;
+        }
+        .dropdown-item-custom:hover {
+            background-color: #f0f2f5;
+            color: #212529;
+            padding-left: 18px; /* Efecto deslizamiento */
+        }
+
+        /* Drag & Drop */
+        .sortable-ghost { opacity: 0.4; background-color: #ffca2c !important; border: 2px dashed #000; }
+        .cursor-grab { cursor: grab; color: #adb5bd; font-size: 1.1rem; }
+        .cursor-grab:hover { color: #343a40; }
+        .cursor-grab:active { cursor: grabbing; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-custom navbar-dark mb-4 shadow-sm">
+    <div class="container-fluid px-4">
+
+        <a class="navbar-brand p-0" href="#">
+            <img th:src="@{/images/logocolorprint.png}" alt="ColorPrint" style="height: 40px; object-fit: contain;">
+        </a>
+
+        <div class="navbar-nav ms-auto">
+            <a class="nav-link me-3" href="/ingreso">INGRESO</a>
+            <a class="nav-link me-3" href="/pauta">PAUTA</a>
+            <a class="nav-link me-3" href="/estadisticas">ESTADÍSTICAS</a>
+            <a class="nav-link me-3" href="/inventario">INVENTARIO</a>
+            <a class="nav-link me-3" href="/calendario">INSTALACIONES</a>
+
+            <form th:action="@{/logout}" method="post" class="d-inline">
+                <button class="btn nav-link border-0 bg-transparent fw-bold" style="font-size: 0.85rem;">SALIR</button>
+            </form>
+        </div>
+    </div>
+</nav>
+<div class="container-fluid px-4">
+
+    <ul class="nav nav-pills mb-3">
+        <li class="nav-item"><a class="nav-link" th:classappend="${estadoActual == null} ? 'active'" href="/pauta">TODOS</a></li>
+        <li class="nav-item"><a class="nav-link" th:classappend="${estadoActual?.name() == 'REVISAR_ARCHIVO'} ? 'active'" href="/pauta?estado=REVISAR_ARCHIVO">1. Revisar</a></li>
+        <li class="nav-item"><a class="nav-link" th:classappend="${estadoActual?.name() == 'IMPRIMIR_VB'} ? 'active'" href="/pauta?estado=IMPRIMIR_VB">2. Imp VB</a></li>
+        <li class="nav-item"><a class="nav-link" th:classappend="${estadoActual?.name() == 'VB_IMPRESO'} ? 'active'" href="/pauta?estado=VB_IMPRESO">3. VB Imp.</a></li>
+        <li class="nav-item"><a class="nav-link" th:classappend="${estadoActual?.name() == 'VB_CLIENTE'} ? 'active'" href="/pauta?estado=VB_CLIENTE">4. VB Cte</a></li>
+        <li class="nav-item"><a class="nav-link" th:classappend="${estadoActual?.name() == 'VB_APROBADO'} ? 'active'" href="/pauta?estado=VB_APROBADO">5. Aprob.</a></li>
+        <li class="nav-item"><a class="nav-link" th:classappend="${estadoActual?.name() == 'COLA_DE_IMPRESION'} ? 'active'" href="/pauta?estado=COLA_DE_IMPRESION">6. Cola Imp</a></li>
+        <li class="nav-item"><a class="nav-link" th:classappend="${estadoActual?.name() == 'TERMINACIONES'} ? 'active'" href="/pauta?estado=TERMINACIONES">7. Termin.</a></li>
+        <li class="nav-item"><a class="nav-link" th:classappend="${estadoActual?.name() == 'SELLADO'} ? 'active'" href="/pauta?estado=SELLADO">8. Sellado</a></li>
+        <li class="nav-item"><a class="nav-link" th:classappend="${estadoActual?.name() == 'DESPACHOS'} ? 'active'" href="/pauta?estado=DESPACHOS">9. Despacho</a></li>
+        <li class="nav-item ms-3">
+            <a class="nav-link nav-link-standby" th:classappend="${estadoActual?.name() == 'STAND_BY'} ? 'active'" href="/pauta?estado=STAND_BY"><i class="fa-solid fa-pause me-1"></i> STAND BY</a>
+        </li>
+        <li class="nav-item ms-1">
+            <a class="nav-link bg-light text-muted border" th:classappend="${estadoActual?.name() == 'HISTORICOS'} ? 'active bg-dark text-white border-dark'" href="/pauta?estado=HISTORICOS">Históricos</a>
+        </li>
+    </ul>
+
+    <div class="card border-0 shadow-sm mb-3 bg-white" th:if="${estadoActual?.name() == 'HISTORICOS'}">
+        <div class="card-body py-3">
+            <form action="/pauta" method="get" class="row g-2 align-items-center">
+                <input type="hidden" name="estado" value="HISTORICOS">
+                <div class="col-auto"><span class="fw-bold text-secondary small"><i class="fa-solid fa-filter me-2"></i>FILTRAR POR:</span></div>
+                <div class="col-auto flex-grow-1"><input type="text" name="keyword" class="form-control form-control-sm" placeholder="Escribe el Nº de OT o Nombre del Cliente..." th:value="${keyword}"></div>
+                <div class="col-auto"><button type="submit" class="btn btn-dark btn-sm px-4 fw-bold"><i class="fa-solid fa-magnifying-glass me-1"></i> BUSCAR</button></div>
+                <div class="col-auto" th:if="${keyword != null and keyword != ''}"><a href="/pauta?estado=HISTORICOS" class="btn btn-outline-secondary btn-sm"><i class="fa-solid fa-xmark"></i></a></div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-3 bg-white" th:if="${estadoActual == null}">
+        <div class="card-body py-2 px-3">
+            <form action="/pauta" method="get" class="d-flex align-items-center gap-3">
+                <span class="fw-bold text-primary small"><i class="fa-regular fa-calendar-check me-2"></i>AGENDA DE ENTREGAS:</span>
+                <div class="d-flex align-items-center">
+                    <input type="date" name="fecha" class="form-control form-control-sm" th:value="${fechaFiltro}" onchange="this.form.submit()">
+                </div>
+                <div th:if="${fechaFiltro != null}">
+                    <a href="/pauta" class="btn btn-sm btn-outline-danger border-0"><i class="fa-solid fa-xmark me-1"></i> Ver Todo Pendiente</a>
+                </div>
+                <div th:if="${fechaFiltro == null}" class="small text-muted fst-italic ms-2">* Mostrando todos los trabajos pendientes ordenados por urgencia.</div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-3">
+        <div class="card-body p-0">
+            <div class="table-responsive" style="min-height: 400px;">
+                <table class="table table-hover align-middle mb-0 text-center small" style="font-size: 0.85rem;">
+                    <thead class="table-dark text-uppercase">
+                    <tr>
+                        <th th:if="${estadoActual?.name() == 'COLA_DE_IMPRESION'}" style="width: 40px;"></th>
+                        <th>OT</th>
+                        <th class="text-start">Cliente / Tema</th>
+                        <th>Máq / Sustrato</th>
+                        <th>Medidas (Cant)</th>
+                        <th>M²</th>
+                        <th>Terminaciones</th>
+                        <th class="text-info">Tipo</th>
+                        <th class="text-info text-start">Dirección</th>
+                        <th>Entrega</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                    </thead>
+                    <tbody id="sortable-table">
+                    <tr th:if="${#lists.isEmpty(trabajos)}"><td colspan="12" class="py-5 text-muted fst-italic">No hay trabajos en esta bandeja.</td></tr>
+
+                    <tr th:each="t : ${trabajos}" th:data-id="${t.id}" class="bg-white">
+                        <td th:if="${estadoActual?.name() == 'COLA_DE_IMPRESION'}" class="text-center">
+                            <i class="fa-solid fa-grip-vertical cursor-grab" title="Arrastrar para ordenar"></i>
+                        </td>
+
+                        <td class="fw-bold" th:text="${t.ot}"></td>
+                        <td class="text-start">
+                            <div class="fw-bold text-dark" th:text="${t.cliente}"></div>
+                            <div class="text-muted small text-uppercase" th:text="${t.tema}"></div>
+                        </td>
+
+                        <td>
+                            <div th:text="${t.maquina}" class="fw-bold"></div>
+                            <div th:text="${t.sustrato}" class="small text-muted text-uppercase" style="font-size: 0.75rem;"></div>
+                            <span class="badge rounded-pill mt-1" th:classappend="${t.resolucion == 'Alta'} ? 'badge-res-alta' : 'badge-res-baja'" th:text="${t.resolucion}"></span>
+                        </td>
+
+                        <td>
+                            <span th:text="${t.ancho}"></span> x <span th:text="${t.alto}"></span>
+                            <br>
+                            <span class="badge bg-light text-dark border">x <span th:text="${t.cantidad}"></span></span>
+                        </td>
+                        <td class="fw-bold" style="color: #d63384;" th:text="${#numbers.formatDecimal(t.m2Totales, 1, 2)}"></td>
+                        <td class="text-muted" style="max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" th:text="${t.terminaciones}" th:title="${t.terminaciones}"></td>
+                        <td class="fw-bold text-info" th:text="${t.tipoDespacho}"></td>
+                        <td class="text-start small text-muted" th:text="${t.despacharA}"></td>
+                        <td th:text="${t.fechaEntrega}"></td>
+                        <td><span class="badge bg-secondary bg-opacity-75 text-white" th:text="${t.estadoActual}"></span></td>
+
+                        <td>
+                            <div class="d-flex justify-content-center gap-2 align-items-center">
+
+                                <button type="button" class="btn btn-light btn-sm text-primary" th:onclick="abrirModalEditar([[${t.id}]], [[${t.maquina}]], [[${t.resolucion}]], [[${t.fechaEntrega}]])"><i class="fa-solid fa-pen"></i></button>
+
+                                <form th:if="${t.estadoActual.name() != 'STAND_BY'}" th:action="@{/standby/{id}(id=${t.id})}" method="post">
+                                    <button type="submit" class="btn btn-light btn-sm text-warning"><i class="fa-solid fa-pause"></i></button>
+                                </form>
+
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-success btn-sm dropdown-toggle rounded-pill px-3 fw-bold" data-bs-toggle="dropdown" aria-expanded="false" data-bs-boundary="viewport">Mover</button>
+                                    <ul class="dropdown-menu dropdown-menu-end custom-dropdown-menu">
+                                        <li><div class="dropdown-header-custom">Pre-Prensa</div></li>
+                                        <li><form action="/mover-manual" method="post"><input type="hidden" name="id" th:value="${t.id}"><input type="hidden" name="destino" value="REVISAR_ARCHIVO"><button class="dropdown-item-custom" type="submit">1. Revisar Archivo</button></form></li>
+                                        <li><form action="/mover-manual" method="post"><input type="hidden" name="id" th:value="${t.id}"><input type="hidden" name="destino" value="IMPRIMIR_VB"><button class="dropdown-item-custom" type="submit">2. Imprimir VB</button></form></li>
+                                        <li><form action="/mover-manual" method="post"><input type="hidden" name="id" th:value="${t.id}"><input type="hidden" name="destino" value="VB_IMPRESO"><button class="dropdown-item-custom" type="submit">3. VB Impreso</button></form></li>
+                                        <li><div class="dropdown-header-custom mt-2">Aprobación</div></li>
+                                        <li><form action="/mover-manual" method="post"><input type="hidden" name="id" th:value="${t.id}"><input type="hidden" name="destino" value="VB_CLIENTE"><button class="dropdown-item-custom" type="submit">4. VB Cliente</button></form></li>
+                                        <li><form action="/mover-manual" method="post"><input type="hidden" name="id" th:value="${t.id}"><input type="hidden" name="destino" value="VB_APROBADO"><button class="dropdown-item-custom" type="submit">5. Aprobado</button></form></li>
+                                        <li><div class="dropdown-header-custom mt-2">Producción</div></li>
+                                        <li><form action="/mover-manual" method="post"><input type="hidden" name="id" th:value="${t.id}"><input type="hidden" name="destino" value="COLA_DE_IMPRESION"><button class="dropdown-item-custom" type="submit">6. Cola Impresión</button></form></li>
+                                        <li><form action="/mover-manual" method="post"><input type="hidden" name="id" th:value="${t.id}"><input type="hidden" name="destino" value="TERMINACIONES"><button class="dropdown-item-custom" type="submit">7. Terminaciones</button></form></li>
+                                        <li><div class="dropdown-header-custom mt-2">Logística</div></li>
+                                        <li><form action="/mover-manual" method="post"><input type="hidden" name="id" th:value="${t.id}"><input type="hidden" name="destino" value="SELLADO"><button class="dropdown-item-custom" type="submit">8. Sellado</button></form></li>
+                                        <li><form action="/mover-manual" method="post"><input type="hidden" name="id" th:value="${t.id}"><input type="hidden" name="destino" value="DESPACHOS"><button class="dropdown-item-custom" type="submit">9. Despachos</button></form></li>
+                                        <li><hr class="dropdown-divider my-2"></li>
+                                        <li><form action="/mover-manual" method="post"><input type="hidden" name="id" th:value="${t.id}"><input type="hidden" name="destino" value="HISTORICOS"><button class="dropdown-item-custom text-secondary fw-bold" type="submit">Finalizar (Historial)</button></form></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalEditar" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-dark text-white">
+                <h6 class="modal-title fw-bold">MODIFICAR TRABAJO</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body bg-light">
+                <form th:action="@{/actualizar}" method="post">
+                    <input type="hidden" id="editId" name="id">
+                    <div class="row mb-3">
+                        <div class="col-7"><label class="form-label fw-bold small text-muted">MÁQUINA</label><input type="text" id="editMaquina" name="maquina" class="form-control"></div>
+                        <div class="col-5"><label class="form-label fw-bold small text-muted">CALIDAD</label><select id="editResolucion" name="resolucion" class="form-select"><option value="Alta">Alta</option><option value="Baja">Baja</option></select></div>
+                    </div>
+                    <div class="mb-4"><label class="form-label fw-bold small text-muted">FECHA DE ENTREGA</label><input type="date" id="editFecha" name="fechaEntrega" class="form-control"></div>
+                    <div class="d-flex justify-content-end gap-2"><button type="button" class="btn btn-white border" data-bs-dismiss="modal">Cancelar</button><button type="submit" class="btn btn-primary px-4 fw-bold">Guardar</button></div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var el = document.getElementById('sortable-table');
+        if (el && document.querySelector('.cursor-grab')) {
+            Sortable.create(el, {
+                animation: 150,
+                handle: '.cursor-grab',
+                ghostClass: 'sortable-ghost',
+                onEnd: function (evt) {
+                    var newOrderIds = [];
+                    el.querySelectorAll('tr').forEach(function (row) {
+                        newOrderIds.push(row.getAttribute('data-id'));
+                    });
+                    fetch('/reordenar', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(newOrderIds)
+                    }).catch(error => console.error('Error:', error));
+                }
+            });
+        }
+    });
+
+    function abrirModalEditar(id, maquina, resolucion, fecha) {
+        document.getElementById('editId').value = id;
+        document.getElementById('editMaquina').value = maquina;
+        document.getElementById('editResolucion').value = resolucion;
+        document.getElementById('editFecha').value = fecha;
+        var myModal = new bootstrap.Modal(document.getElementById('modalEditar'));
+        myModal.show();
+    }
+</script>
+</body>
+</html>
