@@ -7,50 +7,31 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         body { background-color: #f4f6f8; font-family: 'Roboto', sans-serif; font-size: 0.9rem; }
-
-        /* NAVBAR */
         .navbar-custom { background: linear-gradient(90deg, #1a1a1a, #2c3e50); }
         .nav-link { color: rgba(255,255,255,0.7); }
         .nav-link.active { color: #ffca2c !important; font-weight: bold; }
-        .nav-link:hover { color: white; }
-
-        /* BOTÓN PRINCIPAL */
         .btn-ingresar { background-color: #ffca2c; color: #000; font-weight: 800; border: none; }
         .btn-ingresar:hover { background-color: #ffc107; }
-
-        /* ESTILOS DE PLANILLA */
         .table-input th { background-color: #212529; color: white; font-size: 0.7rem; text-transform: uppercase; vertical-align: middle; text-align: center;}
         .table-input td { padding: 4px; vertical-align: middle; }
-
-        /* INPUTS COMPACTOS */
         .form-control-xs, .form-select-xs { border-radius: 0; border: 1px solid #dee2e6; font-size: 0.8rem; padding: 4px; }
         .form-control-xs:focus { border-color: #ffca2c; box-shadow: inset 0 0 0 1px #ffca2c; z-index: 2; position: relative; }
-
-        /* ICONOS ACCIONES */
         .btn-remove { color: #dc3545; cursor: pointer; transition: 0.2s; font-size: 1rem; }
-        .btn-remove:hover { color: #a71d2a; transform: scale(1.1); }
         .btn-duplicate { color: #0d6efd; cursor: pointer; transition: 0.2s; font-size: 1rem; }
-        .btn-duplicate:hover { color: #0a58ca; transform: scale(1.1); }
     </style>
 </head>
 <body>
+
 <nav class="navbar navbar-expand-lg navbar-custom navbar-dark mb-4 shadow-sm">
     <div class="container-fluid px-4">
-
-        <a class="navbar-brand p-0" href="#">
-            <img th:src="@{/images/logocolorprint.png}" alt="ColorPrint" style="height: 40px; object-fit: contain;">
-        </a>
-
+        <a class="navbar-brand fw-bold" href="#" style="color: #ffca2c;"><i class="fa-solid fa-print me-2"></i>COLORPRINT</a>
         <div class="navbar-nav ms-auto">
-            <a class="nav-link me-3" href="/ingreso">INGRESO</a>
+            <a class="nav-link active me-3" href="/ingreso">INGRESO</a>
             <a class="nav-link me-3" href="/pauta">PAUTA</a>
             <a class="nav-link me-3" href="/estadisticas">ESTADÍSTICAS</a>
             <a class="nav-link me-3" href="/inventario">INVENTARIO</a>
             <a class="nav-link me-3" href="/calendario">INSTALACIONES</a>
-
-            <form th:action="@{/logout}" method="post" class="d-inline">
-                <button class="btn nav-link border-0 bg-transparent fw-bold" style="font-size: 0.85rem;">SALIR</button>
-            </form>
+            <form th:action="@{/logout}" method="post" class="d-inline"><button class="btn nav-link border-0 bg-transparent fw-bold">SALIR</button></form>
         </div>
     </div>
 </nav>
@@ -62,26 +43,21 @@
             <div class="card-header bg-white fw-bold py-2"><i class="fa-solid fa-circle-info me-2 text-primary"></i>DATOS GENERALES OT</div>
             <div class="card-body bg-light py-3">
                 <div class="row g-3">
+                    <div class="col-md-2"><label class="form-label small fw-bold text-muted mb-1">OT #</label><input type="text" name="ot" class="form-control fw-bold text-center border-primary" placeholder="Auto"></div>
+                    <div class="col-md-3"><label class="form-label small fw-bold text-muted mb-1">CLIENTE</label><input type="text" name="cliente" class="form-control" required></div>
+
                     <div class="col-md-2">
-                        <label class="form-label small fw-bold text-muted mb-1">OT #</label>
-                        <input type="text" name="ot" class="form-control fw-bold text-center border-primary" placeholder="Auto/Manual">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label small fw-bold text-muted mb-1">CLIENTE</label>
-                        <input type="text" name="cliente" class="form-control" required>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label small fw-bold text-muted mb-1">FECHA ENTREGA</label>
-                        <input type="date" name="fechaEntrega" class="form-control" required>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label small fw-bold text-muted mb-1">INICIAR EN</label>
-                        <select name="estadoActual" class="form-select bg-warning bg-opacity-10">
-                            <option value="REVISAR_ARCHIVO">Revisar Archivo</option>
-                            <option value="IMPRIMIR_VB">Imprimir VB</option>
-                            <option value="COLA_DE_IMPRESION">Cola Producción</option>
+                        <label class="form-label small fw-bold text-muted mb-1">VENDEDORA</label>
+                        <select name="vendedora" class="form-select bg-info bg-opacity-10" required>
+                            <option value="" disabled selected>Elegir...</option>
+                            <option value="PAMELA">PAMELA</option>
+                            <option value="ANITA">ANITA</option>
+                            <option value="OFICINA">OFICINA</option>
                         </select>
                     </div>
+
+                    <div class="col-md-2"><label class="form-label small fw-bold text-muted mb-1">FECHA ENTREGA</label><input type="date" name="fechaEntrega" class="form-control" required></div>
+                    <div class="col-md-3"><label class="form-label small fw-bold text-muted mb-1">INICIAR EN</label><select name="estadoActual" class="form-select bg-warning bg-opacity-10"><option value="REVISAR_ARCHIVO">Revisar Archivo</option><option value="IMPRIMIR_VB">Imprimir VB</option><option value="COLA_DE_IMPRESION">Cola Producción</option></select></div>
                 </div>
             </div>
         </div>
@@ -108,29 +84,17 @@
                         <tbody id="tbodyItems">
                         <tr class="fila-item">
                             <td class="text-center fw-bold row-index text-muted">1</td>
-
-                            <td><input type="text" name="tema" class="form-control form-control-xs" placeholder="Ej: Pendón..." required></td>
-
-                            <td><input type="text" name="maquina" class="form-control form-control-xs" placeholder="Plotter"></td>
-
-                            <td>
-                                <select name="resolucion" class="form-select form-select-xs">
-                                    <option value="Alta">Alta</option>
-                                    <option value="Baja">Baja</option>
-                                </select>
-                            </td>
-
-                            <td><input type="text" name="sustrato" class="form-control form-control-xs" placeholder="Mat."></td>
-
-                            <td><input type="number" step="0.01" name="ancho" class="form-control form-control-xs text-center" placeholder="0.0" oninput="calc(this)"></td>
-                            <td><input type="number" step="0.01" name="alto" class="form-control form-control-xs text-center" placeholder="0.0" oninput="calc(this)"></td>
+                            <td><input type="text" name="tema" class="form-control form-control-xs" required></td>
+                            <td><input type="text" name="maquina" class="form-control form-control-xs"></td>
+                            <td><select name="resolucion" class="form-select form-select-xs"><option value="Alta">Alta</option><option value="Baja">Baja</option></select></td>
+                            <td><input type="text" name="sustrato" class="form-control form-control-xs"></td>
+                            <td><input type="number" step="0.01" name="ancho" class="form-control form-control-xs text-center" oninput="calc(this)"></td>
+                            <td><input type="number" step="0.01" name="alto" class="form-control form-control-xs text-center" oninput="calc(this)"></td>
                             <td><input type="number" name="cantidad" class="form-control form-control-xs text-center fw-bold" value="1" oninput="calc(this)"></td>
-
                             <td>
                                 <input type="text" name="terminaciones" class="form-control form-control-xs" placeholder="...">
                                 <div class="text-end text-primary fw-bold small mt-1 span-m2">0.00 m²</div>
                             </td>
-
                             <td>
                                 <div class="d-flex flex-column gap-1">
                                     <select name="tipoDespacho" class="form-select form-select-xs bg-light">
@@ -142,7 +106,6 @@
                                     <input type="text" name="despacharA" class="form-control form-control-xs" placeholder="Dirección..." required>
                                 </div>
                             </td>
-
                             <td class="text-center">
                                 <i class="fa-solid fa-copy btn-duplicate me-2" onclick="duplicarFila(this)"></i>
                                 <i class="fa-solid fa-trash-can btn-remove" onclick="borrarFila(this)"></i>
@@ -153,16 +116,8 @@
                 </div>
             </div>
             <div class="card-footer bg-white d-flex justify-content-between align-items-center py-3">
-                <button type="button" class="btn btn-outline-dark btn-sm" onclick="agregarFila()">
-                    <i class="fa-solid fa-plus me-1"></i> AGREGAR OTRA FILA
-                </button>
-
-                <div class="d-flex align-items-center gap-3">
-                    <span class="text-muted small">Total Ítems: <strong id="totalItems">1</strong></span>
-                    <button type="submit" class="btn btn-ingresar px-5 rounded-3 shadow-sm">
-                        <i class="fa-solid fa-floppy-disk me-2"></i> GUARDAR ORDEN COMPLETA
-                    </button>
-                </div>
+                <button type="button" class="btn btn-outline-dark btn-sm" onclick="agregarFila()"><i class="fa-solid fa-plus me-1"></i> AGREGAR OTRA FILA</button>
+                <button type="submit" class="btn btn-ingresar px-5 rounded-3 shadow-sm"><i class="fa-solid fa-floppy-disk me-2"></i> GUARDAR TODO</button>
             </div>
         </div>
     </form>
@@ -171,69 +126,40 @@
 <script>
     function actualizarIndices() {
         let filas = document.querySelectorAll('#tbodyItems tr');
-        document.getElementById('totalItems').innerText = filas.length;
-        filas.forEach((fila, index) => {
-            fila.querySelector('.row-index').innerText = index + 1;
-        });
+        filas.forEach((fila, index) => { fila.querySelector('.row-index').innerText = index + 1; });
     }
-
-    // CÁLCULO M2 SEGURO (Detecta punto o coma)
     function calc(element) {
         let row = element.closest('tr');
-
-        // .valueAsNumber ayuda a interpretar el input numérico correctamente
         let ancho = row.querySelector('input[name="ancho"]').valueAsNumber || 0;
         let alto = row.querySelector('input[name="alto"]').valueAsNumber || 0;
         let cant = row.querySelector('input[name="cantidad"]').valueAsNumber || 0;
-
-        // Fórmula: (Ancho * Alto * Cantidad) / 10000
         let m2 = (ancho * alto * cant) / 10000;
-
         row.querySelector('.span-m2').innerText = m2.toFixed(2) + " m²";
     }
-
     function agregarFila() {
         let tbody = document.getElementById('tbodyItems');
         let primeraFila = tbody.querySelector('tr');
         let nuevaFila = primeraFila.cloneNode(true);
-
-        // Limpiar inputs
         nuevaFila.querySelectorAll('input').forEach(input => input.value = '');
-
-        // Restaurar valores por defecto
         nuevaFila.querySelector('input[name="cantidad"]').value = 1;
         nuevaFila.querySelector('select[name="resolucion"]').value = 'Alta';
         nuevaFila.querySelector('select[name="tipoDespacho"]').value = 'Retiro Taller';
         nuevaFila.querySelector('.span-m2').innerText = '0.00 m²';
-
         tbody.appendChild(nuevaFila);
         actualizarIndices();
     }
-
     function duplicarFila(btn) {
         let filaActual = btn.closest('tr');
         let nuevaFila = filaActual.cloneNode(true);
         filaActual.parentNode.insertBefore(nuevaFila, filaActual.nextSibling);
         actualizarIndices();
-        // Recalcular para mostrar el m2 en la copia
         calc(nuevaFila.querySelector('input[name="ancho"]'));
     }
-
     function borrarFila(btn) {
         let filas = document.querySelectorAll('#tbodyItems tr');
-        if (filas.length > 1) {
-            btn.closest('tr').remove();
-            actualizarIndices();
-        } else {
-            // Si es la última, solo limpiamos
-            let inputs = btn.closest('tr').querySelectorAll('input');
-            inputs.forEach(input => input.value = '');
-            btn.closest('tr').querySelector('input[name="cantidad"]').value = 1;
-            btn.closest('tr').querySelector('.span-m2').innerText = '0.00 m²';
-        }
+        if (filas.length > 1) { btn.closest('tr').remove(); actualizarIndices(); } else { let inputs = btn.closest('tr').querySelectorAll('input'); inputs.forEach(input => input.value = ''); }
     }
 </script>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

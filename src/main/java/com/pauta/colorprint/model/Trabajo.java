@@ -19,6 +19,9 @@ public class Trabajo {
     private String cliente;
     private String tema;
 
+    // NUEVO CAMPO
+    private String vendedora;
+
     private String maquina;
     private String resolucion;
     private String sustrato;
@@ -29,20 +32,19 @@ public class Trabajo {
     private Double m2Totales;
 
     private String terminaciones;
-    private String tipoDespacho; // Aquí se marca "Instalacion"
+    private String tipoDespacho;
 
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate fechaEntrega;
 
     private String despacharA;
 
-    // --- CAMPOS DE INSTALACIÓN ---
     @DateTimeFormat(pattern = "yyyy-MM-dd")
-    private LocalDate fechaInstalacion; // La fecha de la agenda
+    private LocalDate fechaInstalacion;
 
-    private boolean instalacionRealizada; // Check de listo
+    private boolean instalacionRealizada;
 
-    private String notaInstalacion; // Detalles técnicos
+    private String notaInstalacion;
 
     @Enumerated(EnumType.STRING)
     private EstadoTrabajo estadoActual;
@@ -57,7 +59,6 @@ public class Trabajo {
         if (estadoActual == null) estadoActual = EstadoTrabajo.REVISAR_ARCHIVO;
         if (resolucion == null || resolucion.isEmpty()) resolucion = "Alta";
 
-        // Cálculo M2
         if (ancho != null && alto != null && cantidad != null) {
             this.m2Totales = (ancho * alto * cantidad) / 10000.0;
         } else {

@@ -41,40 +41,24 @@ public class InventarioController {
         return "redirect:/inventario/detalle?categoria=" + insumo.getCategoria();
     }
 
-    // --- CORRECCIÓN AQUÍ PARA QUE SUME Y RESTE BIEN ---
     @PostMapping("/ajuste")
     public String ajustarStock(@RequestParam Long id, @RequestParam Double cantidad, @RequestParam String accion) {
         Insumo i = insumoRepository.findById(id).orElse(null);
-        String categoriaReturn = "";
-
+        String cat = (i != null) ? i.getCategoria() : "";
         if (i != null) {
-            categoriaReturn = i.getCategoria(); // Guardamos la categoría para volver
-
-            if ("sumar".equals(accion)) {
-                i.setStockActual(i.getStockActual() + cantidad);
-            } else if ("restar".equals(accion)) {
-                double nuevoStock = i.getStockActual() - cantidad;
-                i.setStockActual(Math.max(0, nuevoStock)); // Evitar negativos
-            }
+            if ("sumar".equals(accion)) i.setStockActual(i.getStockActual() + cantidad);
+            else i.setStockActual(Math.max(0, i.getStockActual() - cantidad));
             insumoRepository.save(i);
         }
-
-        // Redirigir a la misma categoría para ver el cambio
-        return "redirect:/inventario/detalle?categoria=" + categoriaReturn;
+        return "redirect:/inventario/detalle?categoria=" + cat;
     }
 
     @PostMapping("/eliminar/{id}")
     public String eliminarInsumo(@PathVariable Long id) {
-        // Necesitamos saber la categoría antes de borrar para redirigir bien
         Insumo i = insumoRepository.findById(id).orElse(null);
-        String categoriaReturn = (i != null) ? i.getCategoria() : "";
-
-        if (i != null) {
-            insumoRepository.deleteById(id);
-        }
-
-        // Si la categoría queda vacía o hay error, volvemos al inicio, si no, a la tabla
-        if (categoriaReturn.isEmpty()) return "redirect:/inventario";
-        return "redirect:/inventario/detalle?categoria=" + categoriaReturn;
+        String cat = (i != null) ? i.getCategoria() : "";
+        if (i != null) insumoRepository.deleteById(id);
+        if (cat.isEmpty()) return "redirect:/inventario";
+        return "redirect:/inventario/detalle?categoria=" + cat;
     }
 }
