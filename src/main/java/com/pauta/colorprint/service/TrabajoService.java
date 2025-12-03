@@ -17,7 +17,7 @@ public class TrabajoService {
     @Autowired
     private TrabajoRepository trabajoRepository;
 
-    // --- MÉTODOS OPERATIVOS ---
+    // --- MÉTODOS OPERATIVOS BÁSICOS ---
     public List<Trabajo> obtenerTodos() { return trabajoRepository.findAll(); }
 
     public List<Trabajo> obtenerPendientes(LocalDate fechaFiltro) {
@@ -93,12 +93,9 @@ public class TrabajoService {
     public List<Trabajo> getInstalacionesSemana(LocalDate inicio, LocalDate fin) {
         return trabajoRepository.findInstalacionesSemana(inicio, fin);
     }
-
-    // CORRECCIÓN AQUÍ: Pasamos el estado HISTORICOS para excluirlo
     public List<Trabajo> getInstalacionesSinFecha() {
         return trabajoRepository.findInstalacionesSinFecha(EstadoTrabajo.HISTORICOS);
     }
-
     public void completarInstalacion(Long id) {
         Trabajo t = trabajoRepository.findById(id).orElse(null);
         if (t != null) {
@@ -107,53 +104,25 @@ public class TrabajoService {
         }
     }
 
-    // --- KPIs ---
+    // --- KPI / ESTADÍSTICAS ---
     private LocalDate[] calcularRango(String periodo) {
         LocalDate hoy = LocalDate.now();
         LocalDate inicio = LocalDate.of(2000, 1, 1);
         LocalDate fin = LocalDate.of(2100, 12, 31);
-
-        if ("mes_actual".equals(periodo)) {
-            inicio = hoy.with(TemporalAdjusters.firstDayOfMonth());
-            fin = hoy.with(TemporalAdjusters.lastDayOfMonth());
-        } else if ("mes_anterior".equals(periodo)) {
-            inicio = hoy.minusMonths(1).with(TemporalAdjusters.firstDayOfMonth());
-            fin = hoy.minusMonths(1).with(TemporalAdjusters.lastDayOfMonth());
-        } else if ("anio_actual".equals(periodo)) {
-            inicio = hoy.with(TemporalAdjusters.firstDayOfYear());
-            fin = hoy.with(TemporalAdjusters.lastDayOfYear());
-        }
+        if ("mes_actual".equals(periodo)) { inicio = hoy.with(TemporalAdjusters.firstDayOfMonth()); fin = hoy.with(TemporalAdjusters.lastDayOfMonth()); }
+        else if ("mes_anterior".equals(periodo)) { inicio = hoy.minusMonths(1).with(TemporalAdjusters.firstDayOfMonth()); fin = hoy.minusMonths(1).with(TemporalAdjusters.lastDayOfMonth()); }
+        else if ("anio_actual".equals(periodo)) { inicio = hoy.with(TemporalAdjusters.firstDayOfYear()); fin = hoy.with(TemporalAdjusters.lastDayOfYear()); }
         return new LocalDate[]{inicio, fin};
     }
+    public List<KpiResult> getStatsSustratos(String periodo) { LocalDate[] r = calcularRango(periodo); return trabajoRepository.getKpiSustratos(r[0], r[1]); }
+    public List<KpiResult> getStatsMaquinas(String periodo) { LocalDate[] r = calcularRango(periodo); return trabajoRepository.getKpiMaquinas(r[0], r[1]); }
+    public List<KpiResult> getStatsResolucion(String periodo) { LocalDate[] r = calcularRango(periodo); return trabajoRepository.getKpiResolucion(r[0], r[1]); }
+    public List<KpiResult> getTopClientes(String periodo) { LocalDate[] r = calcularRango(periodo); return trabajoRepository.getTopClientes(r[0], r[1]); }
+    public Double getTotalM2(String periodo) { LocalDate[] r = calcularRango(periodo); Double t = trabajoRepository.getTotalM2Filtrado(r[0], r[1]); return (t!=null)?t:0.0; }
+    public Long getTotalOrdenes(String periodo) { LocalDate[] r = calcularRango(periodo); return trabajoRepository.getTotalOrdenesFiltrado(r[0], r[1]); }
 
-    public List<KpiResult> getStatsSustratos(String periodo) {
-        LocalDate[] rango = calcularRango(periodo);
-        return trabajoRepository.getKpiSustratos(rango[0], rango[1]);
-    }
-
-    public List<KpiResult> getStatsMaquinas(String periodo) {
-        LocalDate[] rango = calcularRango(periodo);
-        return trabajoRepository.getKpiMaquinas(rango[0], rango[1]);
-    }
-
-    public List<KpiResult> getStatsResolucion(String periodo) {
-        LocalDate[] rango = calcularRango(periodo);
-        return trabajoRepository.getKpiResolucion(rango[0], rango[1]);
-    }
-
-    public List<KpiResult> getTopClientes(String periodo) {
-        LocalDate[] rango = calcularRango(periodo);
-        return trabajoRepository.getTopClientes(rango[0], rango[1]);
-    }
-
-    public Double getTotalM2(String periodo) {
-        LocalDate[] rango = calcularRango(periodo);
-        Double total = trabajoRepository.getTotalM2Filtrado(rango[0], rango[1]);
-        return (total != null) ? total : 0.0;
-    }
-
-    public Long getTotalOrdenes(String periodo) {
-        LocalDate[] rango = calcularRango(periodo);
-        return trabajoRepository.getTotalOrdenesFiltrado(rango[0], rango[1]);
+    // --- ¡AQUÍ ESTÁ EL MÉTODO QUE FALTABA! ---
+    public void eliminarTrabajo(Long id) {
+        trabajoRepository.deleteById(id);
     }
 }

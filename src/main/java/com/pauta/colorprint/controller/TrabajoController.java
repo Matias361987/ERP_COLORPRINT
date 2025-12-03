@@ -19,12 +19,12 @@ public class TrabajoController {
     @Autowired
     private TrabajoService trabajoService;
 
-    // --- NAVEGACIÓN ---
+    // --- NAVEGACIÓN BÁSICA ---
     @GetMapping("/") public String inicio() { return "redirect:/login"; }
     @GetMapping("/login") public String login() { return "login"; }
     @GetMapping("/ingreso") public String verIngreso(Model model) { return "ingreso"; }
 
-    // --- CALENDARIO ---
+    // --- CALENDARIO DE INSTALACIONES ---
     @GetMapping("/calendario")
     public String verCalendario(@RequestParam(required = false) String fechaBase, Model model) {
         LocalDate hoy = (fechaBase != null && !fechaBase.isEmpty()) ? LocalDate.parse(fechaBase) : LocalDate.now();
@@ -52,7 +52,7 @@ public class TrabajoController {
                 trabajoService.guardarTrabajo(t);
             }
         } catch (Exception e) { e.printStackTrace(); }
-        return "redirect:/calendario";
+        return "redirect:/instalaciones/por-agendar";
     }
 
     @PostMapping("/instalacion/completar/{id}")
@@ -124,14 +124,12 @@ public class TrabajoController {
         return "estadisticas";
     }
 
-    // --- GUARDADO MASIVO (CORREGIDO: AHORA GUARDA VENDEDORA) ---
+    // --- GUARDADO MASIVO COMPLETO ---
     @PostMapping("/guardar")
     public String guardarMasivo(
-            @RequestParam String ot,
-            @RequestParam String cliente,
-            @RequestParam String vendedora, // <--- ESTE FALTABA
-            @RequestParam String fechaEntrega,
-            @RequestParam EstadoTrabajo estadoActual,
+            @RequestParam String ot, @RequestParam String cliente,
+            @RequestParam String vendedora, // RECIBE VENDEDORA
+            @RequestParam String fechaEntrega, @RequestParam EstadoTrabajo estadoActual,
 
             @RequestParam(required = false) List<String> tema,
             @RequestParam(required = false) List<String> maquina,
@@ -141,6 +139,8 @@ public class TrabajoController {
             @RequestParam(required = false) List<Double> alto,
             @RequestParam(required = false) List<Integer> cantidad,
             @RequestParam(required = false) List<String> terminaciones,
+
+            // LISTAS DE LOGÍSTICA POR FILA
             @RequestParam(required = false) List<String> tipoDespacho,
             @RequestParam(required = false) List<String> despacharA
     ) {
@@ -150,14 +150,15 @@ public class TrabajoController {
             if (ancho.get(i) == null || cantidad.get(i) == null) continue;
 
             Trabajo t = new Trabajo();
-            // Datos de Cabecera
+
+            // Cabecera
             t.setOt(ot);
             t.setCliente(cliente);
-            t.setVendedora(vendedora); // <--- AQUÍ SE GUARDA EL DATO
+            t.setVendedora(vendedora); // GUARDA VENDEDORA
             t.setFechaEntrega(LocalDate.parse(fechaEntrega));
             t.setEstadoActual(estadoActual);
 
-            // Datos de Fila
+            // Filas
             t.setTema(tema.get(i));
             t.setMaquina(maquina.get(i));
             t.setResolucion(resolucion.get(i));
@@ -167,6 +168,7 @@ public class TrabajoController {
             t.setCantidad(cantidad.get(i));
             t.setTerminaciones(terminaciones.get(i));
 
+            // Logística (Validando listas)
             if (tipoDespacho != null && i < tipoDespacho.size()) t.setTipoDespacho(tipoDespacho.get(i));
             if (despacharA != null && i < despacharA.size()) t.setDespacharA(despacharA.get(i));
 
@@ -180,8 +182,27 @@ public class TrabajoController {
     @PostMapping("/avanzar/{id}") public String avanzarEstado(@PathVariable Long id) { trabajoService.avanzarEstado(id); return "redirect:/pauta"; }
     @PostMapping("/standby/{id}") public String moverStandBy(@PathVariable Long id) { Trabajo t = trabajoService.obtenerPorId(id); if(t!=null){t.setEstadoActual(EstadoTrabajo.STAND_BY); trabajoService.guardarTrabajo(t);} return "redirect:/pauta"; }
     @PostMapping("/mover-manual") public String moverManual(@RequestParam Long id, @RequestParam String destino) { trabajoService.moverAEstadoEspecifico(id, destino); return "redirect:/pauta"; }
-    @PostMapping("/actualizar") public String actualizarTrabajo(@RequestParam Long id, @RequestParam String maquina, @RequestParam String resolucion, @RequestParam String fechaEntrega) { Trabajo t = trabajoService.obtenerPorId(id); if(t!=null){t.setMaquina(maquina); t.setResolucion(resolucion); t.setFechaEntrega(LocalDate.parse(fechaEntrega)); trabajoService.guardarTrabajo(t);} return "redirect:/pauta"; }
+
+    @PostMapping("/actualizar")
+    public String actualizarTrabajo(@RequestParam Long id, @RequestParam String maquina, @RequestParam String resolucion, @RequestParam String fechaEntrega) {
+        Trabajo t = trabajoService.obtenerPorId(id);
+        if(t!=null){
+            t.setMaquina(maquina); t.setResolucion(resolucion);
+            if (fechaEntrega != null && !fechaEntrega.isEmpty()) t.setFechaEntrega(LocalDate.parse(fechaEntrega));
+            trabajoService.guardarTrabajo(t);
+        }
+        return "redirect:/pauta";
+    }
+
     @PostMapping("/subir/{id}") public String subirTrabajo(@PathVariable Long id) { trabajoService.subirOrden(id); return "redirect:/pauta?estado=COLA_DE_IMPRESION"; }
     @PostMapping("/bajar/{id}") public String bajarTrabajo(@PathVariable Long id) { trabajoService.bajarOrden(id); return "redirect:/pauta?estado=COLA_DE_IMPRESION"; }
     @PostMapping("/reordenar") @ResponseBody public String reordenar(@RequestBody List<Long> ids) { trabajoService.guardarNuevoOrden(ids); return "OK"; }
+
+    // ELIMINAR (SOLO HISTÓRICOS)
+    @PostMapping("/eliminar-trabajo/{id}")
+    public String eliminarTrabajo(@PathVariable Long id) {
+        Trabajo t = trabajoService.obtenerPorId(id);
+        if (t != null) { trabajoService.eliminarTrabajo(id); }
+        return "redirect:/pauta?estado=HISTORICOS";
+    }
 }

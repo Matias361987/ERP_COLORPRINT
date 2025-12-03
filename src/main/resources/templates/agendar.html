@@ -14,6 +14,7 @@
     </style>
 </head>
 <body>
+
 <nav class="navbar navbar-expand-lg navbar-custom navbar-dark mb-4 shadow-sm">
     <div class="container-fluid px-4">
 
@@ -26,11 +27,9 @@
             <a class="nav-link me-3" href="/pauta">PAUTA</a>
             <a class="nav-link me-3" href="/estadisticas">ESTADÍSTICAS</a>
             <a class="nav-link me-3" href="/inventario">INVENTARIO</a>
-            <a class="nav-link me-3" href="/calendario">INSTALACIONES</a>
-
-            <form th:action="@{/logout}" method="post" class="d-inline">
-                <button class="btn nav-link border-0 bg-transparent fw-bold" style="font-size: 0.85rem;">SALIR</button>
-            </form>
+            <a class="nav-link active me-3" href="/calendario">CALENDARIO</a> <form th:action="@{/logout}" method="post" class="d-inline">
+            <button class="btn nav-link border-0 bg-transparent fw-bold">SALIR</button>
+        </form>
         </div>
     </div>
 </nav>
@@ -38,10 +37,10 @@
 <div class="container px-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h4 class="fw-bold mb-0"><i class="fa-solid fa-calendar-plus me-2 text-warning"></i>AGENDAR INSTALACIONES</h4>
+            <h4 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-calendar-plus me-2 text-warning"></i>AGENDAR INSTALACIONES</h4>
             <p class="text-muted small mb-0">Trabajos marcados como "Instalación" pendientes de fecha.</p>
         </div>
-        <a href="/calendario" class="btn btn-outline-dark btn-sm"><i class="fa-solid fa-arrow-left me-2"></i> Volver</a>
+        <a href="/calendario" class="btn btn-outline-dark btn-sm"><i class="fa-solid fa-arrow-left me-2"></i> Volver al Calendario</a>
     </div>
 
     <div class="row">
@@ -68,9 +67,9 @@
                             <label class="form-label small fw-bold text-muted mb-1">FECHA VISITA</label>
                             <input type="date" name="fecha" class="form-control" required>
                         </div>
-                        <div style="width: 200px;">
+                        <div style="width: 250px;">
                             <label class="form-label small fw-bold text-muted mb-1">NOTA TÉCNICA</label>
-                            <input type="text" name="nota" class="form-control" placeholder="Ej: Escalera...">
+                            <input type="text" name="nota" class="form-control" placeholder="Ej: Escalera, Contacto...">
                         </div>
                         <button type="submit" class="btn btn-success fw-bold"><i class="fa-solid fa-floppy-disk me-2"></i> AGENDAR</button>
                     </form>
