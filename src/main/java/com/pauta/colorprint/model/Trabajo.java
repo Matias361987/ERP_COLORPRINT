@@ -24,6 +24,11 @@ public class Trabajo {
     private String resolucion;
     private String sustrato;
 
+    // Agrega esto en tu clase Trabajo.java
+    @Column(name = "pass")
+    private String pass;
+
+
     private Integer cantidad;
     private Double ancho;
     private Double alto;
@@ -32,6 +37,10 @@ public class Trabajo {
     // Campo Terminaciones
     @Column(length = 1000) // Permitir textos largos
     private String terminaciones;
+
+
+
+
 
     private String tipoDespacho;
 
@@ -64,6 +73,8 @@ public class Trabajo {
         } else {
             this.m2Totales = 0.0;
         }
+
+
 
         if (orden == null) {
             this.orden = System.currentTimeMillis();

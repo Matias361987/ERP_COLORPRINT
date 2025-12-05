@@ -27,10 +27,8 @@
         .badge-res-baja { background-color: #adb5bd; color: white; }
         .badge-vendedora { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; font-size: 0.65rem; font-weight: 600; padding: 2px 6px; border-radius: 4px; display: inline-block; margin-top: 3px; }
 
-        .custom-dropdown-menu { border: none; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); padding: 10px; min-width: 220px; z-index: 9999 !important; max-height: 280px; overflow-y: auto; }
-        .dropdown-header-custom { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; color: #adb5bd; font-weight: 800; padding: 8px 12px 2px; border-bottom: 1px solid #f0f0f0; margin-bottom: 4px; }
-        .dropdown-item-custom { border-radius: 6px; padding: 8px 12px; font-weight: 500; font-size: 0.85rem; color: #495057; transition: all 0.2s; background: transparent; border: none; width: 100%; text-align: left; display: block; }
-        .dropdown-item-custom:hover { background-color: #f0f2f5; color: #212529; padding-left: 18px; }
+        /* CLASE PERSONALIZADA PARA NARANJO (MAÑANA) */
+        .bg-orange-custom { background-color: #ffebd2; color: #b35b00; border: 1px solid #ffcc99; }
 
         /* Drag & Drop */
         .sortable-ghost { opacity: 0.4; background-color: #ffca2c !important; border: 2px dashed #000; }
@@ -50,7 +48,7 @@
             @page { size: landscape; margin: 0.5cm; }
             body { background-color: white !important; -webkit-print-color-adjust: exact; font-size: 10pt; }
             .card { border: none !important; box-shadow: none !important; }
-            th:first-child, td:first-child, th:last-child, td:last-child { display: none !important; } /* Ocultar acciones y checkbox */
+            th:first-child, td:first-child, th:last-child, td:last-child { display: none !important; }
             .print-header { display: block !important; text-align: center; margin-bottom: 15px; border-bottom: 2px solid black; padding-bottom: 10px; }
             .table-responsive { overflow: visible !important; }
         }
@@ -173,7 +171,12 @@
                     <tr th:if="${#lists.isEmpty(trabajos)}"><td colspan="13" class="py-5 text-muted fst-italic">No hay trabajos en esta bandeja.</td></tr>
 
                     <tr th:each="t : ${trabajos}" th:data-id="${t.id}" class="bg-white">
-                        <td class="no-print"><input type="checkbox" class="form-check-input check-item" th:value="${t.id}" onclick="actualizarBarraMasiva()"></td>
+                        <td class="no-print">
+                            <input type="checkbox" class="form-check-input check-item"
+                                   th:value="${t.id}"
+                                   th:data-m2="${t.m2Totales}"
+                                   onclick="actualizarBarraMasiva()">
+                        </td>
 
                         <td th:if="${estadoActual?.name() == 'COLA_DE_IMPRESION' or estadoActual?.name() == 'SELLADO'}" class="text-center">
                             <i class="fa-solid fa-grip-vertical cursor-grab" title="Arrastrar para ordenar"></i>
@@ -192,46 +195,66 @@
                         <td>
                             <div th:text="${t.maquina}" class="fw-bold"></div>
                             <div th:text="${t.sustrato}" class="small text-muted text-uppercase" style="font-size: 0.75rem;"></div>
-                            <span class="badge rounded-pill mt-1" th:classappend="${t.resolucion == 'Alta'} ? 'badge-res-alta' : 'badge-res-baja'" th:text="${t.resolucion}"></span>
+                            <div class="d-flex gap-1 justify-content-center mt-1">
+                                <span class="badge rounded-pill" th:classappend="${t.resolucion == 'Alta'} ? 'badge-res-alta' : 'badge-res-baja'" th:text="${t.resolucion}"></span>
+                                <span th:if="${t.pass != null and t.pass != ''}" class="badge bg-secondary rounded-pill" th:text="${t.pass}"></span>
+                            </div>
                         </td>
                         <td><span th:text="${t.ancho}"></span> x <span th:text="${t.alto}"></span><br><span class="badge bg-light text-dark border">x <span th:text="${t.cantidad}"></span></span></td>
                         <td class="fw-bold" style="color: #d63384;" th:text="${#numbers.formatDecimal(t.m2Totales, 1, 2)}"></td>
                         <td class="text-muted text-start" style="white-space: normal; word-wrap: break-word; line-height: 1.3;" th:text="${t.terminaciones}"></td>
                         <td class="fw-bold text-info" th:text="${t.tipoDespacho}"></td>
                         <td class="text-start small text-muted" th:text="${t.despacharA}"></td>
-                        <td th:text="${t.fechaEntrega}"></td>
+
+                        <td style="min-width: 180px;"> <div th:with="hoy=${T(java.time.LocalDate).now()}"
+                                                            class="d-inline-flex align-items-center justify-content-center gap-2 px-3 py-1 rounded-pill border shadow-sm w-100"
+                                                            style="font-size: 0.8rem;"
+                                                            th:classappend="${estadoActual?.name() == 'HISTORICOS'} ? 'bg-light text-secondary border-light-subtle' :
+                                                (${t.fechaEntrega.isBefore(hoy.plusDays(1))} ? 'bg-danger-subtle text-danger border-danger-subtle fw-bold' :
+                                                (${t.fechaEntrega.isEqual(hoy.plusDays(1))} ? 'bg-orange-custom fw-bold' :
+                                                (${t.fechaEntrega.isEqual(hoy.plusDays(2))} ? 'bg-warning-subtle text-dark border-warning-subtle fw-bold' :
+                                                'bg-success-subtle text-success border-success-subtle')))">
+
+                            <i th:if="${estadoActual?.name() == 'HISTORICOS'}" class="fa-solid fa-clipboard-check"></i>
+
+                            <i th:if="${estadoActual?.name() != 'HISTORICOS' and t.fechaEntrega.isBefore(hoy.plusDays(1))}" class="fa-solid fa-triangle-exclamation"></i>
+
+                            <i th:if="${estadoActual?.name() != 'HISTORICOS' and t.fechaEntrega.isEqual(hoy.plusDays(1))}" class="fa-regular fa-clock"></i>
+
+                            <i th:if="${estadoActual?.name() != 'HISTORICOS' and t.fechaEntrega.isEqual(hoy.plusDays(2))}" class="fa-regular fa-calendar"></i>
+
+                            <i th:if="${estadoActual?.name() != 'HISTORICOS' and t.fechaEntrega.isAfter(hoy.plusDays(2))}" class="fa-regular fa-calendar-check"></i>
+
+                            <span class="text-uppercase text-nowrap"
+                                  th:text="${#strings.capitalize(#temporals.format(t.fechaEntrega, 'EEEE dd MMM', new java.util.Locale('es', 'ES')))}">
+                                    Fecha
+                                </span>
+                        </div>
+                        </td>
                         <td><span class="badge bg-secondary bg-opacity-75 text-white" th:text="${t.estadoActual}"></span></td>
 
                         <td class="no-print">
                             <div class="d-flex justify-content-center gap-2 align-items-center">
                                 <button type="button" class="btn btn-light btn-sm text-primary"
-                                        th:data-id="${t.id}" th:data-maquina="${t.maquina}" th:data-resolucion="${t.resolucion}" th:data-fecha="${t.fechaEntrega}"
-                                        onclick="abrirModalEditar(this.getAttribute('data-id'), this.getAttribute('data-maquina'), this.getAttribute('data-resolucion'), this.getAttribute('data-fecha'))">
+                                        th:data-id="${t.id}"
+                                        th:data-maquina="${t.maquina}"
+                                        th:data-resolucion="${t.resolucion}"
+                                        th:data-pass="${t.pass}"
+                                        th:data-fecha="${t.fechaEntrega}"
+                                        onclick="abrirModalEditar(
+                                            this.getAttribute('data-id'),
+                                            this.getAttribute('data-maquina'),
+                                            this.getAttribute('data-resolucion'),
+                                            this.getAttribute('data-pass'),
+                                            this.getAttribute('data-fecha')
+                                        )">
                                     <i class="fa-solid fa-pen"></i>
                                 </button>
 
-                                <form th:if="${t.estadoActual.name() != 'STAND_BY' and t.estadoActual.name() != 'HISTORICOS'}" th:action="@{/standby/{id}(id=${t.id})}" method="post"><button type="submit" class="btn btn-light btn-sm text-warning"><i class="fa-solid fa-pause"></i></button></form>
-
-                                <div class="btn-group" th:if="${t.estadoActual.name() != 'HISTORICOS'}">
-                                    <button type="button" class="btn btn-success btn-sm dropdown-toggle rounded-pill px-3 fw-bold" data-bs-toggle="dropdown" aria-expanded="false" data-bs-boundary="viewport">Mover</button>
-                                    <ul class="dropdown-menu dropdown-menu-end custom-dropdown-menu">
-                                        <li><div class="dropdown-header-custom">Pre-Prensa</div></li>
-                                        <li><form action="/mover-manual" method="post"><input type="hidden" name="id" th:value="${t.id}"><input type="hidden" name="destino" value="REVISAR_ARCHIVO"><button class="dropdown-item-custom" type="submit">1. Revisar Archivo</button></form></li>
-                                        <li><form action="/mover-manual" method="post"><input type="hidden" name="id" th:value="${t.id}"><input type="hidden" name="destino" value="IMPRIMIR_VB"><button class="dropdown-item-custom" type="submit">2. Imprimir VB</button></form></li>
-                                        <li><form action="/mover-manual" method="post"><input type="hidden" name="id" th:value="${t.id}"><input type="hidden" name="destino" value="VB_IMPRESO"><button class="dropdown-item-custom" type="submit">3. VB Impreso</button></form></li>
-                                        <li><div class="dropdown-header-custom mt-2">Aprobación</div></li>
-                                        <li><form action="/mover-manual" method="post"><input type="hidden" name="id" th:value="${t.id}"><input type="hidden" name="destino" value="VB_CLIENTE"><button class="dropdown-item-custom" type="submit">4. VB Cliente</button></form></li>
-                                        <li><form action="/mover-manual" method="post"><input type="hidden" name="id" th:value="${t.id}"><input type="hidden" name="destino" value="VB_APROBADO"><button class="dropdown-item-custom" type="submit">5. Aprobado</button></form></li>
-                                        <li><div class="dropdown-header-custom mt-2">Producción</div></li>
-                                        <li><form action="/mover-manual" method="post"><input type="hidden" name="id" th:value="${t.id}"><input type="hidden" name="destino" value="COLA_DE_IMPRESION"><button class="dropdown-item-custom" type="submit">6. Cola Impresión</button></form></li>
-                                        <li><form action="/mover-manual" method="post"><input type="hidden" name="id" th:value="${t.id}"><input type="hidden" name="destino" value="TERMINACIONES"><button class="dropdown-item-custom" type="submit">7. Terminaciones</button></form></li>
-                                        <li><div class="dropdown-header-custom mt-2">Logística</div></li>
-                                        <li><form action="/mover-manual" method="post"><input type="hidden" name="id" th:value="${t.id}"><input type="hidden" name="destino" value="SELLADO"><button class="dropdown-item-custom" type="submit">8. Sellado</button></form></li>
-                                        <li><form action="/mover-manual" method="post"><input type="hidden" name="id" th:value="${t.id}"><input type="hidden" name="destino" value="DESPACHOS"><button class="dropdown-item-custom" type="submit">9. Despachos</button></form></li>
-                                        <li><hr class="dropdown-divider my-2"></li>
-                                        <li><form action="/mover-manual" method="post"><input type="hidden" name="id" th:value="${t.id}"><input type="hidden" name="destino" value="HISTORICOS"><button class="dropdown-item-custom text-secondary fw-bold" type="submit">Finalizar (Historial)</button></form></li>
-                                    </ul>
-                                </div>
+                                <form th:if="${t.estadoActual.name() != 'STAND_BY' and t.estadoActual.name() != 'HISTORICOS'}"
+                                      th:action="@{/standby/{id}(id=${t.id})}" method="post">
+                                    <button type="submit" class="btn btn-light btn-sm text-warning"><i class="fa-solid fa-pause"></i></button>
+                                </form>
 
                                 <form th:if="${t.estadoActual.name() == 'HISTORICOS'}" th:action="@{/eliminar-trabajo/{id}(id=${t.id})}" method="post" onsubmit="return confirm('¿Borrar permanentemente?');">
                                     <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-bold"><i class="fa-solid fa-trash-can me-1"></i> Borrar</button>
@@ -249,7 +272,15 @@
 <div id="barraMasiva">
     <div class="d-flex align-items-center gap-3">
         <h5 class="m-0"><span class="badge bg-warning text-dark" id="contadorMasivo">0</span> Seleccionados</h5>
+
+        <h5 class="m-0 ms-3">
+            <span class="badge bg-info text-dark">
+                <i class="fa-solid fa-ruler-combined me-1"></i>
+                <span id="totalM2Masivo">0.00</span> m²
+            </span>
+        </h5>
     </div>
+
     <form action="/acciones/masivas" method="post" class="d-flex align-items-center gap-3 m-0" id="formMasivo">
         <div id="idsContainer"></div>
         <select name="destino" class="form-select form-select-sm bg-dark text-white border-secondary" style="width: 200px;">
@@ -278,12 +309,37 @@
             <div class="modal-body bg-light">
                 <form th:action="@{/actualizar}" method="post">
                     <input type="hidden" id="editId" name="id">
-                    <div class="row mb-3">
-                        <div class="col-7"><label class="form-label fw-bold small text-muted">MÁQUINA</label><input type="text" id="editMaquina" name="maquina" class="form-control"></div>
-                        <div class="col-5"><label class="form-label fw-bold small text-muted">CALIDAD</label><select id="editResolucion" name="resolucion" class="form-select"><option value="Alta">Alta</option><option value="Baja">Baja</option></select></div>
+                    <input type="hidden" id="urlActual" name="urlActual"> <div class="row mb-3">
+                    <div class="col-5">
+                        <label class="form-label fw-bold small text-muted">MÁQUINA</label>
+                        <input type="text" id="editMaquina" name="maquina" class="form-control">
                     </div>
-                    <div class="mb-4"><label class="form-label fw-bold small text-muted">FECHA DE ENTREGA</label><input type="date" id="editFecha" name="fechaEntrega" class="form-control"></div>
-                    <div class="d-flex justify-content-end gap-2"><button type="button" class="btn btn-white border" data-bs-dismiss="modal">Cancelar</button><button type="submit" class="btn btn-primary px-4 fw-bold">Guardar</button></div>
+                    <div class="col-4">
+                        <label class="form-label fw-bold small text-muted">CALIDAD</label>
+                        <select id="editResolucion" name="resolucion" class="form-select">
+                            <option value="Alta">Alta</option>
+                            <option value="Baja">Baja</option>
+                        </select>
+                    </div>
+                    <div class="col-3">
+                        <label class="form-label fw-bold small text-muted">PASS</label>
+                        <select id="editPass" name="pass" class="form-select">
+                            <option value="">-</option>
+                            <option value="1 pass">1 pass</option>
+                            <option value="2 pass">2 pass</option>
+                            <option value="3 pass">3 pass</option>
+                            <option value="4 pass">4 pass</option>
+                        </select>
+                    </div>
+                </div>
+                    <div class="mb-4">
+                        <label class="form-label fw-bold small text-muted">FECHA DE ENTREGA</label>
+                        <input type="date" id="editFecha" name="fechaEntrega" class="form-control">
+                    </div>
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-white border" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary px-4 fw-bold">Guardar</button>
+                    </div>
                 </form>
             </div>
         </div>
@@ -306,25 +362,50 @@
             });
         }
     });
-    function abrirModalEditar(id, maquina, resolucion, fecha) {
+
+    function abrirModalEditar(id, maquina, resolucion, pass, fecha) {
         document.getElementById('editId').value = id;
         document.getElementById('editMaquina').value = maquina;
         document.getElementById('editResolucion').value = resolucion;
+
+        // Carga del pass
+        document.getElementById('editPass').value = pass ? pass : "";
+
         document.getElementById('editFecha').value = fecha;
+
+        // Captura la URL exacta
+        document.getElementById('urlActual').value = window.location.href;
+
         var myModal = new bootstrap.Modal(document.getElementById('modalEditar'));
         myModal.show();
     }
-    // Lógica Masiva
+
+    // Lógica Masiva + Suma m²
     function toggleAll(source) {
         checkboxes = document.getElementsByClassName('check-item');
         for(var i=0, n=checkboxes.length;i<n;i++) { checkboxes[i].checked = source.checked; }
         actualizarBarraMasiva();
     }
+
     function actualizarBarraMasiva() {
         var checkboxes = document.querySelectorAll('.check-item:checked');
         var barra = document.getElementById('barraMasiva');
         var container = document.getElementById('idsContainer');
+
+        // Contador items
         document.getElementById('contadorMasivo').innerText = checkboxes.length;
+
+        // Suma M2
+        var totalM2 = 0.0;
+        checkboxes.forEach(function(chk) {
+            var m2 = parseFloat(chk.getAttribute('data-m2'));
+            if (!isNaN(m2)) {
+                totalM2 += m2;
+            }
+        });
+        document.getElementById('totalM2Masivo').innerText = totalM2.toFixed(2);
+
+        // Visualización Barra
         container.innerHTML = '';
         if (checkboxes.length > 0) {
             barra.classList.add('visible');

@@ -28,7 +28,7 @@ public class TrabajoController {
     @GetMapping("/login") public String login() { return "login"; }
     @GetMapping("/ingreso") public String verIngreso(Model model) { return "ingreso"; }
 
-    // --- PAUTA (AQUÍ ESTÁ LA CORRECCIÓN DEL ERROR 500) ---
+    // --- PAUTA ---
     @GetMapping("/pauta")
     public String verPauta(@RequestParam(required = false) String estado,
                            @RequestParam(required = false) String keyword,
@@ -39,27 +39,21 @@ public class TrabajoController {
         EstadoTrabajo estadoSeleccionado = null;
         LocalDate fechaFiltro = null;
 
-        // 1. Protección de Fecha
         if (fecha != null && !fecha.isEmpty()) {
             try { fechaFiltro = LocalDate.parse(fecha); } catch (Exception e) { fechaFiltro = null; }
         }
 
-        // 2. Lógica Blindada (Try-Catch General)
         try {
             if (keyword != null && !keyword.isEmpty()) {
                 listaTrabajos = trabajoService.buscarGlobalmente(keyword);
                 model.addAttribute("busquedaActiva", true);
             } else if (estado != null && !estado.isEmpty()) {
                 try {
-                    // Intentamos convertir el estado. Si falla, el sistema NO se cae.
                     estadoSeleccionado = EstadoTrabajo.valueOf(estado);
-
                     if (estadoSeleccionado == EstadoTrabajo.HISTORICOS) {
                         listaTrabajos = trabajoService.buscarHistoricos(null);
                     } else {
                         listaTrabajos = trabajoService.obtenerPorEstado(estadoSeleccionado);
-
-                        // Carga segura del resumen (Solo en Cola de Impresión)
                         if (estadoSeleccionado == EstadoTrabajo.COLA_DE_IMPRESION) {
                             try {
                                 model.addAttribute("resumenMateriales", trabajoService.getResumenCola());
@@ -69,8 +63,6 @@ public class TrabajoController {
                         }
                     }
                 } catch (IllegalArgumentException e) {
-                    // ¡AQUÍ EVITAMOS EL ERROR 500!
-                    // Si el estado no existe o viene mal, mostramos la lista por defecto.
                     estadoSeleccionado = null;
                     listaTrabajos = trabajoService.obtenerPendientes(fechaFiltro);
                 }
@@ -78,7 +70,6 @@ public class TrabajoController {
                 listaTrabajos = trabajoService.obtenerPendientes(fechaFiltro);
             }
         } catch (Exception e) {
-            // Protección final: Si falla la base de datos, mostramos lista vacía o por defecto para no mostrar pantalla blanca.
             System.out.println("Error recuperado en Pauta: " + e.getMessage());
             listaTrabajos = trabajoService.obtenerPendientes(null);
         }
@@ -119,6 +110,7 @@ public class TrabajoController {
         } catch (Exception e) {}
         return "redirect:/instalaciones/por-agendar";
     }
+
     @PostMapping("/instalacion/completar/{id}") public String completarInstalacion(@PathVariable Long id) { trabajoService.completarInstalacion(id); return "redirect:/calendario"; }
     @GetMapping("/instalaciones/por-agendar") public String verPorAgendar(Model model) { List<Trabajo> pendientes = trabajoRepository.findInstalacionesSinFecha(EstadoTrabajo.HISTORICOS); model.addAttribute("pendientes", pendientes); return "agendar"; }
 
@@ -178,28 +170,82 @@ public class TrabajoController {
         return "redirect:/pauta";
     }
 
-    // --- ACCIONES ---
-    @PostMapping("/avanzar/{id}") public String avanzarEstado(@PathVariable Long id) { trabajoService.avanzarEstado(id); return "redirect:/pauta"; }
-    @PostMapping("/standby/{id}") public String moverStandBy(@PathVariable Long id) { Trabajo t = trabajoService.obtenerPorId(id); if(t!=null){t.setEstadoActual(EstadoTrabajo.STAND_BY); trabajoService.guardarTrabajo(t);} return "redirect:/pauta"; }
-    @PostMapping("/mover-manual") public String moverManual(@RequestParam Long id, @RequestParam String destino) { trabajoService.moverAEstadoEspecifico(id, destino); return "redirect:/pauta"; }
-    @PostMapping("/actualizar") public String actualizarTrabajo(@RequestParam Long id, @RequestParam String maquina, @RequestParam String resolucion, @RequestParam String fechaEntrega) { try { Trabajo t = trabajoService.obtenerPorId(id); if(t != null){ t.setMaquina(maquina); t.setResolucion(resolucion); if (fechaEntrega != null && !fechaEntrega.isEmpty()) t.setFechaEntrega(LocalDate.parse(fechaEntrega)); trabajoService.guardarTrabajo(t); } } catch (Exception e) {} return "redirect:/pauta"; }
+    // --- ACCIONES Y MODIFICACIÓN ---
 
-    // MÉTODOS CORREGIDOS (Sin errores de escritura)
-    @PostMapping("/subir/{id}")
-    public String subirTrabajo(@PathVariable Long id) {
-        trabajoService.subirOrden(id);
+    @PostMapping("/actualizar")
+    public String actualizarTrabajo(@RequestParam Long id,
+                                    @RequestParam String maquina,
+                                    @RequestParam String resolucion,
+                                    @RequestParam(required = false) String pass, // NUEVO CAMPO PASS
+                                    @RequestParam String fechaEntrega,
+                                    @RequestParam(required = false) String urlActual, // PARA REDIRECCIÓN
+                                    @RequestHeader(value = "Referer", required = false) String referer) {
+        try {
+            Trabajo t = trabajoService.obtenerPorId(id);
+            if(t != null){
+                t.setMaquina(maquina);
+                t.setResolucion(resolucion);
+                t.setPass(pass); // GUARDAMOS EL PASS
+                if (fechaEntrega != null && !fechaEntrega.isEmpty()) t.setFechaEntrega(LocalDate.parse(fechaEntrega));
+                trabajoService.guardarTrabajo(t);
+            }
+        } catch (Exception e) {}
+
+        // LÓGICA DE REDIRECCIÓN PRIORITARIA
+        if (urlActual != null && !urlActual.isEmpty()) return "redirect:" + urlActual;
+        if (referer != null && !referer.isEmpty()) return "redirect:" + referer;
+        return "redirect:/pauta";
+    }
+
+    @PostMapping("/avanzar/{id}")
+    public String avanzarEstado(@PathVariable Long id, @RequestHeader(value = "Referer", required = false) String referer) {
+        trabajoService.avanzarEstado(id);
+        return "redirect:" + (referer != null ? referer : "/pauta");
+    }
+
+    @PostMapping("/standby/{id}")
+    public String moverStandBy(@PathVariable Long id, @RequestHeader(value = "Referer", required = false) String referer) {
         Trabajo t = trabajoService.obtenerPorId(id);
-        return "redirect:/pauta?estado=" + (t != null ? t.getEstadoActual() : "COLA_DE_IMPRESION");
+        if(t!=null){
+            t.setEstadoActual(EstadoTrabajo.STAND_BY);
+            trabajoService.guardarTrabajo(t);
+        }
+        return "redirect:" + (referer != null ? referer : "/pauta");
+    }
+
+    @PostMapping("/subir/{id}")
+    public String subirTrabajo(@PathVariable Long id, @RequestHeader(value = "Referer", required = false) String referer) {
+        trabajoService.subirOrden(id);
+        return "redirect:" + (referer != null ? referer : "/pauta");
     }
 
     @PostMapping("/bajar/{id}")
-    public String bajarTrabajo(@PathVariable Long id) {
+    public String bajarTrabajo(@PathVariable Long id, @RequestHeader(value = "Referer", required = false) String referer) {
         trabajoService.bajarOrden(id);
-        Trabajo t = trabajoService.obtenerPorId(id);
-        return "redirect:/pauta?estado=" + (t != null ? t.getEstadoActual() : "COLA_DE_IMPRESION");
+        return "redirect:" + (referer != null ? referer : "/pauta");
     }
 
-    @PostMapping("/acciones/masivas") public String accionesMasivas(@RequestParam(required = false) List<Long> ids, @RequestParam String destino, @RequestHeader(value = "Referer", required = false) String referer) { if (ids != null && !ids.isEmpty()) { trabajoService.moverMasivo(ids, destino); } return "redirect:" + (referer != null ? referer : "/pauta"); }
-    @PostMapping("/reordenar") @ResponseBody public String reordenar(@RequestBody List<Long> ids) { trabajoService.guardarNuevoOrden(ids); return "OK"; }
-    @PostMapping("/eliminar-trabajo/{id}") public String eliminarTrabajo(@PathVariable Long id) { Trabajo t = trabajoService.obtenerPorId(id); if (t != null) { trabajoService.eliminarTrabajo(id); } return "redirect:/pauta?estado=HISTORICOS"; }
+    @PostMapping("/eliminar-trabajo/{id}")
+    public String eliminarTrabajo(@PathVariable Long id, @RequestHeader(value = "Referer", required = false) String referer) {
+        Trabajo t = trabajoService.obtenerPorId(id);
+        if (t != null) {
+            trabajoService.eliminarTrabajo(id);
+        }
+        return "redirect:" + (referer != null ? referer : "/pauta?estado=HISTORICOS");
+    }
+
+    @PostMapping("/acciones/masivas")
+    public String accionesMasivas(@RequestParam(required = false) List<Long> ids, @RequestParam String destino, @RequestHeader(value = "Referer", required = false) String referer) {
+        if (ids != null && !ids.isEmpty()) {
+            trabajoService.moverMasivo(ids, destino);
+        }
+        return "redirect:" + (referer != null ? referer : "/pauta");
+    }
+
+    @PostMapping("/reordenar")
+    @ResponseBody
+    public String reordenar(@RequestBody List<Long> ids) {
+        trabajoService.guardarNuevoOrden(ids);
+        return "OK";
+    }
 }
