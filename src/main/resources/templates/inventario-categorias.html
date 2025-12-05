@@ -3,175 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <title>Inventario - ColorPrint</title>
+    <link rel="icon" type="image/png" th:href="@{/images/favicon.png}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/png" th:href="@{/images/logocolorprint.png}">
     <style>
         body { background-color: #f8f9fa; font-family: 'Roboto', sans-serif; color: #343a40; }
-
-        /* --- NAVBAR UNIFICADO --- */
         .navbar-custom { background: linear-gradient(90deg, #1a1a1a, #2c3e50); color: white; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
-        .nav-link { color: rgba(255,255,255,0.7); transition: color 0.2s; }
-        .nav-link.active { color: #ffca2c !important; font-weight: 800; }
-        .nav-link:hover { color: white; }
+        .nav-link { color: rgba(255,255,255,0.7); }
+        .nav-link.active { color: #ffca2c !important; font-weight: bold; }
 
-        /* HEADER */
         .header-title { font-weight: 300; font-size: 2rem; letter-spacing: 2px; }
         .header-subtitle { color: #6c757d; font-size: 0.9rem; }
-
-        /* CARDS DE CATEGORÍA */
-        .cat-card {
-            background: white; border: none; border-radius: 20px; padding: 30px 25px; height: 100%;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.03); transition: all 0.3s ease; position: relative; overflow: hidden;
-            display: flex; flex-direction: column; justify-content: space-between;
-        }
+        .cat-card { background: white; border: none; border-radius: 20px; padding: 30px 25px; height: 100%; box-shadow: 0 5px 20px rgba(0,0,0,0.03); transition: all 0.3s ease; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; }
         .cat-card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
-        .cat-card::before {
-            content: '\f466'; font-family: "Font Awesome 6 Free"; font-weight: 900;
-            position: absolute; right: -10px; bottom: -20px; font-size: 8rem; color: #f3f3f3; z-index: 0; transform: rotate(-15deg);
-        }
+        .cat-card::before { content: '\f466'; font-family: "Font Awesome 6 Free"; font-weight: 900; position: absolute; right: -10px; bottom: -20px; font-size: 8rem; color: #f3f3f3; z-index: 0; transform: rotate(-15deg); }
         .cat-label { font-size: 0.7rem; font-weight: 700; color: #adb5bd; letter-spacing: 2px; text-transform: uppercase; z-index: 1; }
         .cat-title { font-size: 1.4rem; font-weight: 700; color: #343a40; margin-top: 5px; margin-bottom: 20px; z-index: 1; text-transform: uppercase;}
-
-        .btn-ver-stock {
-            background-color: #343a40; color: white; border-radius: 50px; padding: 8px 20px;
-            font-size: 0.8rem; font-weight: 700; text-decoration: none; z-index: 1; display: inline-block; transition: background 0.2s;
-        }
+        .btn-ver-stock { background-color: #343a40; color: white; border-radius: 50px; padding: 8px 20px; font-size: 0.8rem; font-weight: 700; text-decoration: none; z-index: 1; display: inline-block; transition: background 0.2s; }
         .btn-ver-stock:hover { background-color: #000; color: #ffca2c; }
-
         .btn-nuevo { background-color: #343a40; color: white; border-radius: 50px; padding: 12px 30px; font-weight: 700; border: none; }
         .btn-nuevo:hover { background-color: #212529; }
-
-        /* ESTILOS DEL MODAL */
         .modal-content { border: none; border-radius: 4px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
         .modal-header-custom { background-color: #1a1a1a; color: white; padding: 20px 25px; border: none; }
         .modal-title-custom { font-weight: 400; letter-spacing: 1px; font-size: 1.1rem; text-transform: uppercase; }
-
         .form-label-custom { font-weight: 600; color: #555; margin-bottom: 8px; font-size: 0.95rem; }
-        .input-custom {
-            background-color: #f4f6f8; border: none; border-radius: 4px; padding: 12px 15px; font-size: 0.95rem; color: #333;
-        }
+        .input-custom { background-color: #f4f6f8; border: none; border-radius: 4px; padding: 12px 15px; font-size: 0.95rem; color: #333; }
         .input-custom:focus { background-color: #e9ecef; box-shadow: none; outline: 1px solid #ced4da; }
         .helper-text { font-size: 0.8rem; color: #888; margin-top: 5px; display: block; }
-
-        .btn-guardar-custom {
-            background-color: #66bb6a; color: white; font-weight: 700; width: 100%; padding: 15px;
-            border: none; border-radius: 4px; letter-spacing: 0.5px; margin-top: 20px; margin-bottom: 15px; transition: background 0.2s;
-        }
+        .btn-guardar-custom { background-color: #66bb6a; color: white; font-weight: 700; width: 100%; padding: 15px; border: none; border-radius: 4px; letter-spacing: 0.5px; margin-top: 20px; margin-bottom: 15px; transition: background 0.2s; }
         .btn-guardar-custom:hover { background-color: #57a05b; }
-
-        .btn-cancelar-custom {
-            background: none; border: none; color: #000; font-weight: 600; width: 100%; text-align: center; letter-spacing: 1px; font-size: 0.9rem;
-        }
+        .btn-cancelar-custom { background: none; border: none; color: #000; font-weight: 600; width: 100%; text-align: center; letter-spacing: 1px; font-size: 0.9rem; }
         .btn-cancelar-custom:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
 
-<nav class="navbar navbar-expand-lg navbar-custom navbar-dark mb-4 shadow-sm">
+<nav class="navbar navbar-expand-lg navbar-custom navbar-dark mb-5 shadow-sm">
     <div class="container-fluid px-4">
-
         <a class="navbar-brand p-0" href="#">
             <img th:src="@{/images/logocolorprint.png}" alt="ColorPrint" style="height: 40px; object-fit: contain;">
         </a>
-
         <div class="navbar-nav ms-auto">
             <a class="nav-link me-3" href="/ingreso">INGRESO</a>
             <a class="nav-link me-3" href="/pauta">PAUTA</a>
             <a class="nav-link me-3" href="/estadisticas">ESTADÍSTICAS</a>
-            <a class="nav-link me-3" href="/inventario">INVENTARIO</a>
+            <a class="nav-link active me-3" href="/inventario">INVENTARIO</a>
             <a class="nav-link me-3" href="/calendario">INSTALACIONES</a>
-
-            <form th:action="@{/logout}" method="post" class="d-inline">
-                <button class="btn nav-link border-0 bg-transparent fw-bold" style="font-size: 0.85rem;">SALIR</button>
-            </form>
+            <form th:action="@{/logout}" method="post" class="d-inline"><button class="btn nav-link border-0 bg-transparent fw-bold">SALIR</button></form>
         </div>
     </div>
 </nav>
-<div class="container px-4">
 
+<div class="container px-4">
     <div class="d-flex justify-content-between align-items-center mb-5">
-        <div>
-            <h1 class="header-title mb-0">RESUMEN DE INVENTARIO</h1>
-            <span class="header-subtitle">Selecciona una categoría para gestionar stock.</span>
-        </div>
-        <button class="btn btn-nuevo shadow-lg" data-bs-toggle="modal" data-bs-target="#modalNuevo">
-            <i class="fa-solid fa-plus me-2"></i> NUEVO PRODUCTO
-        </button>
+        <div><h1 class="header-title mb-0">RESUMEN DE INVENTARIO</h1><span class="header-subtitle">Selecciona una categoría para gestionar stock.</span></div>
+        <button class="btn btn-nuevo shadow-lg" data-bs-toggle="modal" data-bs-target="#modalNuevo"><i class="fa-solid fa-plus me-2"></i> NUEVO PRODUCTO</button>
     </div>
 
     <div class="row g-4">
         <div class="col-md-4" th:each="cat : ${categorias}">
             <div class="cat-card">
-                <div>
-                    <div class="cat-label">CATEGORÍA</div>
-                    <div class="cat-title" th:text="${cat}">NOMBRE</div>
-                </div>
-                <div class="d-flex justify-content-between align-items-end">
-                    <a th:href="@{/inventario/detalle(categoria=${cat})}" class="btn-ver-stock">Ver Stock</a>
-                    <i class="fa-solid fa-chevron-right text-muted" style="z-index: 1;"></i>
-                </div>
+                <div><div class="cat-label">CATEGORÍA</div><div class="cat-title" th:text="${cat}">NOMBRE</div></div>
+                <div class="d-flex justify-content-between align-items-end"><a th:href="@{/inventario/detalle(categoria=${cat})}" class="btn-ver-stock">Ver Stock</a><i class="fa-solid fa-chevron-right text-muted" style="z-index: 1;"></i></div>
             </div>
         </div>
-
-        <div class="col-12 text-center mt-5" th:if="${#lists.isEmpty(categorias)}">
-            <div class="text-muted opacity-50">
-                <i class="fa-solid fa-box-open fa-3x mb-3"></i>
-                <h4>No hay inventario creado.</h4>
-                <p>Agrega un producto nuevo para crear una categoría.</p>
-            </div>
-        </div>
+        <div class="col-12 text-center mt-5" th:if="${#lists.isEmpty(categorias)}"><div class="text-muted opacity-50"><i class="fa-solid fa-box-open fa-3x mb-3"></i><h4>No hay inventario creado.</h4><p>Agrega un producto nuevo para crear una categoría.</p></div></div>
     </div>
 </div>
 
 <div class="modal fade" id="modalNuevo" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-
-            <div class="modal-header-custom">
-                <h5 class="modal-title-custom m-0">REGISTRAR NUEVO PRODUCTO</h5>
-            </div>
-
+            <div class="modal-header-custom"><h5 class="modal-title-custom m-0">REGISTRAR NUEVO PRODUCTO</h5></div>
             <div class="modal-body p-4 bg-white">
                 <form th:action="@{/inventario/guardar}" method="post" th:object="${nuevoInsumo}">
-
-                    <div class="mb-3">
-                        <label class="form-label-custom">Categoría (Carpeta)</label>
-                        <input type="text" th:field="*{categoria}" class="form-control input-custom" list="listaCategorias" placeholder="Ej: ADHESIVOS" required>
-                        <datalist id="listaCategorias">
-                            <option th:each="c : ${categorias}" th:value="${c}"></option>
-                        </datalist>
-                        <small class="helper-text">Escribe una nueva o selecciona una existente.</small>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label-custom">Nombre del Producto</label>
-                        <input type="text" th:field="*{nombre}" class="form-control input-custom" placeholder="Ej: Vinilo Mate" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label-custom">Descripción</label>
-                        <input type="text" th:field="*{descripcion}" class="form-control input-custom" placeholder="Ej: 1.50m ancho">
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label-custom">Stock Inicial</label>
-                        <input type="number" step="0.01" th:field="*{stockActual}" class="form-control input-custom">
-                    </div>
-
-                    <input type="hidden" th:field="*{unidad}" value="Unidades">
-                    <input type="hidden" th:field="*{stockCritico}" value="5">
-
+                    <div class="mb-3"><label class="form-label-custom">Categoría (Carpeta)</label><input type="text" th:field="*{categoria}" class="form-control input-custom" list="listaCategorias" placeholder="Ej: ADHESIVOS" required><datalist id="listaCategorias"><option th:each="c : ${categorias}" th:value="${c}"></option></datalist><small class="helper-text">Escribe una nueva o selecciona una existente.</small></div>
+                    <div class="mb-3"><label class="form-label-custom">Nombre del Producto</label><input type="text" th:field="*{nombre}" class="form-control input-custom" placeholder="Ej: Vinilo Mate" required></div>
+                    <div class="mb-3"><label class="form-label-custom">Descripción</label><input type="text" th:field="*{descripcion}" class="form-control input-custom" placeholder="Ej: 1.50m ancho"></div>
+                    <div class="mb-3"><label class="form-label-custom">Stock Inicial</label><input type="number" step="0.01" th:field="*{stockActual}" class="form-control input-custom"></div>
+                    <input type="hidden" th:field="*{unidad}" value="Unidades"><input type="hidden" th:field="*{stockCritico}" value="5">
                     <button type="submit" class="btn-guardar-custom">GUARDAR PRODUCTO</button>
                     <button type="button" class="btn-cancelar-custom" data-bs-dismiss="modal">CANCELAR</button>
-
                 </form>
             </div>
         </div>
     </div>
 </div>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

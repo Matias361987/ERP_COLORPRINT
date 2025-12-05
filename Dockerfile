@@ -8,3 +8,4 @@ FROM eclipse-temurin:21-jdk-jammy
 COPY --from=build /target/*.jar app.jar
 EXPOSE 8080
 ENTRYPOINT ["java","-jar","/app.jar"]
+# docker

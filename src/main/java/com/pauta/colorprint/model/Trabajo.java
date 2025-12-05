@@ -17,10 +17,8 @@ public class Trabajo {
 
     private String ot;
     private String cliente;
+    private String vendedora; // Campo Vendedora
     private String tema;
-
-    // NUEVO CAMPO
-    private String vendedora;
 
     private String maquina;
     private String resolucion;
@@ -31,7 +29,10 @@ public class Trabajo {
     private Double alto;
     private Double m2Totales;
 
+    // Campo Terminaciones
+    @Column(length = 1000) // Permitir textos largos
     private String terminaciones;
+
     private String tipoDespacho;
 
     @DateTimeFormat(pattern = "yyyy-MM-dd")
@@ -39,11 +40,10 @@ public class Trabajo {
 
     private String despacharA;
 
+    // --- INSTALACIONES ---
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate fechaInstalacion;
-
     private boolean instalacionRealizada;
-
     private String notaInstalacion;
 
     @Enumerated(EnumType.STRING)

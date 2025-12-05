@@ -17,21 +17,16 @@ public class TrabajoService {
     @Autowired
     private TrabajoRepository trabajoRepository;
 
-    // --- MÉTODOS OPERATIVOS BÁSICOS ---
     public List<Trabajo> obtenerTodos() { return trabajoRepository.findAll(); }
-
     public List<Trabajo> obtenerPendientes(LocalDate fechaFiltro) {
         if (fechaFiltro != null) return trabajoRepository.findByEstadoActualNotAndFechaEntregaOrderByOrdenAsc(EstadoTrabajo.HISTORICOS, fechaFiltro);
         return trabajoRepository.findByEstadoActualNotOrderByFechaEntregaAsc(EstadoTrabajo.HISTORICOS);
     }
-
     public List<Trabajo> obtenerPorEstado(EstadoTrabajo estado) { return trabajoRepository.findByEstadoActualOrderByOrdenAsc(estado); }
-
     public List<Trabajo> buscarHistoricos(String palabraClave) {
         if (palabraClave != null) return trabajoRepository.buscarEnHistoricos(palabraClave);
         return trabajoRepository.findByEstadoActualOrderByOrdenAsc(EstadoTrabajo.HISTORICOS);
     }
-
     public Trabajo obtenerPorId(Long id) { return trabajoRepository.findById(id).orElse(null); }
     public void guardarTrabajo(Trabajo trabajo) { trabajoRepository.save(trabajo); }
 
@@ -48,7 +43,6 @@ public class TrabajoService {
             }
         }
     }
-
     public void moverAEstadoEspecifico(Long id, String nombreEstado) {
         Trabajo t = trabajoRepository.findById(id).orElse(null);
         if (t != null) {
@@ -59,7 +53,6 @@ public class TrabajoService {
             } catch (Exception e) {}
         }
     }
-
     public void subirOrden(Long id) {
         Trabajo actual = trabajoRepository.findById(id).orElse(null);
         if (actual != null) {
@@ -70,7 +63,6 @@ public class TrabajoService {
             }
         }
     }
-
     public void bajarOrden(Long id) {
         Trabajo actual = trabajoRepository.findById(id).orElse(null);
         if (actual != null) {
@@ -81,7 +73,6 @@ public class TrabajoService {
             }
         }
     }
-
     public void guardarNuevoOrden(List<Long> ids) {
         for (int i = 0; i < ids.size(); i++) {
             Trabajo t = trabajoRepository.findById(ids.get(i)).orElse(null);
@@ -89,22 +80,7 @@ public class TrabajoService {
         }
     }
 
-    // --- INSTALACIONES ---
-    public List<Trabajo> getInstalacionesSemana(LocalDate inicio, LocalDate fin) {
-        return trabajoRepository.findInstalacionesSemana(inicio, fin);
-    }
-    public List<Trabajo> getInstalacionesSinFecha() {
-        return trabajoRepository.findInstalacionesSinFecha(EstadoTrabajo.HISTORICOS);
-    }
-    public void completarInstalacion(Long id) {
-        Trabajo t = trabajoRepository.findById(id).orElse(null);
-        if (t != null) {
-            t.setInstalacionRealizada(true);
-            trabajoRepository.save(t);
-        }
-    }
-
-    // --- KPI / ESTADÍSTICAS ---
+    // KPIs
     private LocalDate[] calcularRango(String periodo) {
         LocalDate hoy = LocalDate.now();
         LocalDate inicio = LocalDate.of(2000, 1, 1);
@@ -121,8 +97,51 @@ public class TrabajoService {
     public Double getTotalM2(String periodo) { LocalDate[] r = calcularRango(periodo); Double t = trabajoRepository.getTotalM2Filtrado(r[0], r[1]); return (t!=null)?t:0.0; }
     public Long getTotalOrdenes(String periodo) { LocalDate[] r = calcularRango(periodo); return trabajoRepository.getTotalOrdenesFiltrado(r[0], r[1]); }
 
-    // --- ¡AQUÍ ESTÁ EL MÉTODO QUE FALTABA! ---
+    // RESUMEN COLA
+    public List<KpiResult> getResumenCola() {
+        return trabajoRepository.getResumenColaImpresion();
+    }
+
+    // INSTALACIONES
+    public List<Trabajo> getInstalacionesSemana(LocalDate inicio, LocalDate fin) {
+        return trabajoRepository.findInstalacionesSemana(inicio, fin);
+    }
+
+    // CORRECCIÓN: Enviamos el parámetro requerido
+    public List<Trabajo> getInstalacionesSinFecha() {
+        return trabajoRepository.findInstalacionesSinFecha(EstadoTrabajo.HISTORICOS);
+    }
+
+    public List<Trabajo> buscarGlobalmente(String keyword) {
+        if (keyword == null || keyword.isEmpty()) return List.of();
+        return trabajoRepository.buscarGlobalmente(keyword);
+    }
+
+    public void completarInstalacion(Long id) {
+        Trabajo t = trabajoRepository.findById(id).orElse(null);
+        if (t != null) {
+            t.setInstalacionRealizada(true);
+            trabajoRepository.save(t);
+        }
+    }
+
     public void eliminarTrabajo(Long id) {
         trabajoRepository.deleteById(id);
+    }
+
+    public void moverMasivo(List<Long> ids, String nuevoEstado) {
+        if (ids == null || ids.isEmpty()) return;
+        try {
+            EstadoTrabajo estadoEnum = EstadoTrabajo.valueOf(nuevoEstado);
+            long time = System.currentTimeMillis();
+            for (int i = 0; i < ids.size(); i++) {
+                Trabajo t = trabajoRepository.findById(ids.get(i)).orElse(null);
+                if (t != null) {
+                    t.setEstadoActual(estadoEnum);
+                    t.setOrden(time + i);
+                    trabajoRepository.save(t);
+                }
+            }
+        } catch (Exception e) {}
     }
 }
