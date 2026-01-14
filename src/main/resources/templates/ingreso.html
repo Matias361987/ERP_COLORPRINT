@@ -45,12 +45,55 @@
         <div class="card shadow-sm border-0 mb-3">
             <div class="card-header bg-white fw-bold py-2"><i class="fa-solid fa-circle-info me-2 text-primary"></i>DATOS GENERALES OT</div>
             <div class="card-body bg-light py-3">
-                <div class="row g-3">
-                    <div class="col-md-2"><label class="form-label small fw-bold text-muted mb-1">OT #</label><input type="text" name="ot" class="form-control fw-bold text-center border-primary" placeholder="Auto"></div>
-                    <div class="col-md-3"><label class="form-label small fw-bold text-muted mb-1">CLIENTE</label><input type="text" name="cliente" class="form-control" required></div>
-                    <div class="col-md-2"><label class="form-label small fw-bold text-muted mb-1">VENDEDORA</label><select name="vendedora" class="form-select bg-info bg-opacity-10" required><option value="" disabled selected>Elegir...</option><option value="PAMELA">PAMELA</option><option value="ANITA">ANITA</option><option value="OFICINA">OFICINA</option></select></div>
-                    <div class="col-md-2"><label class="form-label small fw-bold text-muted mb-1">FECHA ENTREGA</label><input type="date" name="fechaEntrega" class="form-control" required></div>
-                    <div class="col-md-3"><label class="form-label small fw-bold text-muted mb-1">INICIAR EN</label><select name="estadoActual" class="form-select bg-warning bg-opacity-10"><option value="REVISAR_ARCHIVO">Revisar Archivo</option><option value="IMPRIMIR_VB">Imprimir VB</option><option value="COLA_DE_IMPRESION">Cola Producción</option></select></div>
+                <div class="row g-2">
+                    <div class="col-md-1">
+                        <label class="form-label small fw-bold text-muted mb-1">OT #</label>
+                        <input type="text" name="ot" class="form-control fw-bold text-center border-primary" placeholder="Auto">
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label small fw-bold text-muted mb-1">CLIENTE</label>
+                        <input type="text" name="cliente" class="form-control" required>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label small fw-bold text-muted mb-1">VENDEDORA</label>
+                        <select name="vendedora" class="form-select bg-info bg-opacity-10" required>
+                            <option value="" disabled selected>Elegir...</option>
+                            <option value="PAMELA">PAMELA</option>
+                            <option value="ANITA">ANITA</option>
+                            <option value="OFICINA">OFICINA</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label small fw-bold text-muted mb-1">FECHA ENTREGA</label>
+                        <input type="date" name="fechaEntrega" class="form-control" required>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label small fw-bold text-muted mb-1">HORA DE ENTREGA</label>
+                        <div class="btn-group w-100" role="group">
+                            <input type="radio" class="btn-check" name="turnoEntrega" id="turnoManana" value="AM" autocomplete="off">
+                            <label class="btn btn-outline-warning text-dark fw-bold" for="turnoManana" title="Entrega en la Mañana">
+                                AM
+                            </label>
+
+                            <input type="radio" class="btn-check" name="turnoEntrega" id="turnoTarde" value="PM" autocomplete="off" checked>
+                            <label class="btn btn-outline-secondary fw-bold" for="turnoTarde" title="Entrega en la Tarde">
+                                PM
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label small fw-bold text-muted mb-1">INICIAR EN</label>
+                        <select name="estadoActual" class="form-select bg-warning bg-opacity-10">
+                            <option value="REVISAR_ARCHIVO">Revisar Archivo</option>
+                            <option value="IMPRIMIR_VB">Imprimir VB</option>
+                            <option value="COLA_DE_IMPRESION">Cola Producción</option>
+                        </select>
+                    </div>
                 </div>
             </div>
         </div>
