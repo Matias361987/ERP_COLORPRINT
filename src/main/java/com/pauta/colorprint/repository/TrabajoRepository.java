@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import java.time.LocalDate;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface TrabajoRepository extends JpaRepository<Trabajo, Long> {
@@ -19,6 +21,9 @@ public interface TrabajoRepository extends JpaRepository<Trabajo, Long> {
             "LOWER(t.tema) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
             "ORDER BY t.fechaEntrega ASC")
     List<Trabajo> buscarGlobalmente(@Param("keyword") String keyword);
+
+    @Query("SELECT COALESCE(MAX(t.orden), 0) FROM Trabajo t WHERE t.estadoActual = :estado")
+    Long buscarUltimoOrden(@Param("estado") EstadoTrabajo estado);
 
     @Query("SELECT t FROM Trabajo t WHERE t.estadoActual = 'HISTORICOS' AND (LOWER(t.ot) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(t.cliente) LIKE LOWER(CONCAT('%', :keyword, '%')))")
     List<Trabajo> buscarEnHistoricos(@Param("keyword") String keyword);
