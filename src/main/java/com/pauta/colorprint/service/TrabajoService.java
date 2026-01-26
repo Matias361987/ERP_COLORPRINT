@@ -18,15 +18,19 @@ public class TrabajoService {
     private TrabajoRepository trabajoRepository;
 
     public List<Trabajo> obtenerTodos() { return trabajoRepository.findAll(); }
+
     public List<Trabajo> obtenerPendientes(LocalDate fechaFiltro) {
         if (fechaFiltro != null) return trabajoRepository.findByEstadoActualNotAndFechaEntregaOrderByOrdenAsc(EstadoTrabajo.HISTORICOS, fechaFiltro);
         return trabajoRepository.findByEstadoActualNotOrderByFechaEntregaAsc(EstadoTrabajo.HISTORICOS);
     }
+
     public List<Trabajo> obtenerPorEstado(EstadoTrabajo estado) { return trabajoRepository.findByEstadoActualOrderByOrdenAsc(estado); }
+
     public List<Trabajo> buscarHistoricos(String palabraClave) {
         if (palabraClave != null) return trabajoRepository.buscarEnHistoricos(palabraClave);
         return trabajoRepository.findByEstadoActualOrderByOrdenAsc(EstadoTrabajo.HISTORICOS);
     }
+
     public Trabajo obtenerPorId(Long id) { return trabajoRepository.findById(id).orElse(null); }
     public void guardarTrabajo(Trabajo trabajo) { trabajoRepository.save(trabajo); }
 
@@ -36,13 +40,23 @@ public class TrabajoService {
             EstadoTrabajo actual = trabajo.getEstadoActual();
             EstadoTrabajo[] estados = EstadoTrabajo.values();
             int indiceActual = actual.ordinal();
+
+            // Verificamos que no sea el último estado
             if (indiceActual < estados.length - 1) {
-                trabajo.setEstadoActual(estados[indiceActual + 1]);
-                trabajo.setOrden(System.currentTimeMillis());
+                EstadoTrabajo nuevoEstado = estados[indiceActual + 1];
+                trabajo.setEstadoActual(nuevoEstado);
+
+                // --- AQUÍ ESTÁ LA MAGIA ---
+                // Buscamos el último de la fila de destino y nos ponemos detrás
+                Long ultimoOrden = trabajoRepository.buscarUltimoOrden(nuevoEstado);
+                trabajo.setOrden(ultimoOrden + 1);
+                // --------------------------
+
                 trabajoRepository.save(trabajo);
             }
         }
     }
+
     public void moverAEstadoEspecifico(Long id, String nombreEstado) {
         Trabajo t = trabajoRepository.findById(id).orElse(null);
         if (t != null) {
@@ -53,6 +67,7 @@ public class TrabajoService {
             } catch (Exception e) {}
         }
     }
+
     public void subirOrden(Long id) {
         Trabajo actual = trabajoRepository.findById(id).orElse(null);
         if (actual != null) {
@@ -63,6 +78,7 @@ public class TrabajoService {
             }
         }
     }
+
     public void bajarOrden(Long id) {
         Trabajo actual = trabajoRepository.findById(id).orElse(null);
         if (actual != null) {
@@ -73,11 +89,26 @@ public class TrabajoService {
             }
         }
     }
+
+    // --- OPTIMIZACIÓN 1: DRAG & DROP MASIVO ---
+    // Antes: N consultas + N updates. Ahora: 1 consulta + 1 update masivo.
     public void guardarNuevoOrden(List<Long> ids) {
-        for (int i = 0; i < ids.size(); i++) {
-            Trabajo t = trabajoRepository.findById(ids.get(i)).orElse(null);
-            if (t != null) { t.setOrden((long) i); trabajoRepository.save(t); }
+        if (ids == null || ids.isEmpty()) return;
+
+        // Traemos todos los trabajos implicados de una sola vez
+        List<Trabajo> trabajos = trabajoRepository.findAllById(ids);
+
+        // Actualizamos el orden en memoria
+        for (Trabajo t : trabajos) {
+            // Buscamos la posición (índice) que tiene este ID en la lista que mandó el frontend
+            int nuevoOrden = ids.indexOf(t.getId());
+            if (nuevoOrden != -1) {
+                t.setOrden((long) nuevoOrden);
+            }
         }
+
+        // Guardamos todos los cambios juntos
+        trabajoRepository.saveAll(trabajos);
     }
 
     // KPIs
@@ -107,7 +138,6 @@ public class TrabajoService {
         return trabajoRepository.findInstalacionesSemana(inicio, fin);
     }
 
-    // CORRECCIÓN: Enviamos el parámetro requerido
     public List<Trabajo> getInstalacionesSinFecha() {
         return trabajoRepository.findInstalacionesSinFecha(EstadoTrabajo.HISTORICOS);
     }
@@ -129,19 +159,32 @@ public class TrabajoService {
         trabajoRepository.deleteById(id);
     }
 
-    public void moverMasivo(List<Long> ids, String nuevoEstado) {
+    // --- OPTIMIZACIÓN 2: MOVER MASIVO ---
+    // Antes: Loop con updates individuales. Ahora: saveAll optimizado.
+    public void moverMasivo(List<Long> ids, String nombreEstado) {
         if (ids == null || ids.isEmpty()) return;
         try {
-            EstadoTrabajo estadoEnum = EstadoTrabajo.valueOf(nuevoEstado);
-            long time = System.currentTimeMillis();
-            for (int i = 0; i < ids.size(); i++) {
-                Trabajo t = trabajoRepository.findById(ids.get(i)).orElse(null);
-                if (t != null) {
-                    t.setEstadoActual(estadoEnum);
-                    t.setOrden(time + i);
-                    trabajoRepository.save(t);
-                }
+            EstadoTrabajo nuevoEstado = EstadoTrabajo.valueOf(nombreEstado);
+
+            // 1. Vemos quién es el último de la fila AHORA
+            Long ultimoOrden = trabajoRepository.buscarUltimoOrden(nuevoEstado);
+
+            // 2. Traemos los trabajos que vamos a mover
+            List<Trabajo> trabajos = trabajoRepository.findAllById(ids);
+
+            // 3. Los formamos uno tras otro al final de la cola
+            for (int i = 0; i < trabajos.size(); i++) {
+                Trabajo t = trabajos.get(i);
+                t.setEstadoActual(nuevoEstado);
+                // Si el último era el 10, el primero de estos será el 11, luego 12, etc.
+                t.setOrden(ultimoOrden + (i + 1));
             }
-        } catch (Exception e) {}
+
+            // Guardamos todos de una sola vez (Rápido)
+            trabajoRepository.saveAll(trabajos);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
