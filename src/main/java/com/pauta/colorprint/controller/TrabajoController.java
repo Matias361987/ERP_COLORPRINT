@@ -11,6 +11,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.Comparator; // <--- IMPORTANTE: Necesario para ordenar
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,7 +29,7 @@ public class TrabajoController {
     @GetMapping("/login") public String login() { return "login"; }
     @GetMapping("/ingreso") public String verIngreso(Model model) { return "ingreso"; }
 
-    // --- PAUTA (LÓGICA ORIGINAL RESTAURADA) ---
+    // --- PAUTA (LÓGICA CON ORDENAMIENTO FORZADO) ---
     @GetMapping("/pauta")
     public String verPauta(@RequestParam(required = false) String estado,
                            @RequestParam(required = false) String keyword,
@@ -74,6 +75,14 @@ public class TrabajoController {
             listaTrabajos = trabajoService.obtenerPendientes(null);
         }
 
+        // --- CORRECCIÓN CRÍTICA DE ORDENAMIENTO ---
+        // Aquí forzamos a Java a ordenar la lista por 'orden' (ascendente)
+        // Ignorando si la base de datos la mandó por fecha.
+        if (listaTrabajos != null && !listaTrabajos.isEmpty()) {
+            listaTrabajos.sort(Comparator.comparing(Trabajo::getOrden, Comparator.nullsLast(Comparator.naturalOrder())));
+        }
+        // ------------------------------------------
+
         model.addAttribute("trabajos", listaTrabajos);
         model.addAttribute("estadoActual", estadoSeleccionado);
         model.addAttribute("keyword", keyword);
@@ -82,7 +91,7 @@ public class TrabajoController {
         return "pauta";
     }
 
-    // --- CALENDARIO (LÓGICA ORIGINAL RESTAURADA - ESTO ARREGLA EL ERROR 500) ---
+    // --- CALENDARIO (LÓGICA ORIGINAL RESTAURADA) ---
     @GetMapping("/calendario")
     public String verCalendario(@RequestParam(required = false) String fechaBase, Model model) {
         LocalDate hoy = (fechaBase != null && !fechaBase.isEmpty()) ? LocalDate.parse(fechaBase) : LocalDate.now();
@@ -95,7 +104,7 @@ public class TrabajoController {
         model.addAttribute("instalaciones", instalaciones);
         model.addAttribute("pendientes", pendientes);
         model.addAttribute("lunes", lunes);
-        model.addAttribute("semanaActual", lunes); // Esta variable faltaba y causaba el error 500
+        model.addAttribute("semanaActual", lunes);
         return "calendario";
     }
 
@@ -116,7 +125,7 @@ public class TrabajoController {
     @PostMapping("/instalacion/completar/{id}") public String completarInstalacion(@PathVariable Long id) { trabajoService.completarInstalacion(id); return "redirect:/calendario"; }
     @GetMapping("/instalaciones/por-agendar") public String verPorAgendar(Model model) { List<Trabajo> pendientes = trabajoRepository.findInstalacionesSinFecha(EstadoTrabajo.HISTORICOS); model.addAttribute("pendientes", pendientes); return "agendar"; }
 
-    // --- ESTADÍSTICAS (LÓGICA ORIGINAL RESTAURADA - ESTO ARREGLA QUE NO MIDA NADA) ---
+    // --- ESTADÍSTICAS (LÓGICA ORIGINAL RESTAURADA) ---
     @GetMapping("/estadisticas")
     public String verEstadisticas(@RequestParam(required = false, defaultValue = "todo") String periodo, Model model) {
         List<KpiResult> sustratos = trabajoService.getStatsSustratos(periodo);
@@ -145,12 +154,12 @@ public class TrabajoController {
         return "estadisticas";
     }
 
-    // --- GUARDADO (CON EL CAMBIO DEL TURNO AM/PM) ---
+    // --- GUARDADO ---
     @PostMapping("/guardar")
     public String guardarMasivo(
             @RequestParam String ot, @RequestParam String cliente, @RequestParam String vendedora,
             @RequestParam String fechaEntrega,
-            @RequestParam(required = false, defaultValue = "PM") String turnoEntrega, // NUEVO
+            @RequestParam(required = false, defaultValue = "PM") String turnoEntrega,
             @RequestParam EstadoTrabajo estadoActual,
             @RequestParam(required = false) List<String> tema, @RequestParam(required = false) List<String> maquina,
             @RequestParam(required = false) List<String> resolucion, @RequestParam(required = false) List<String> sustrato,
@@ -164,7 +173,7 @@ public class TrabajoController {
             Trabajo t = new Trabajo();
             t.setOt(ot); t.setCliente(cliente); t.setVendedora(vendedora);
             t.setFechaEntrega(LocalDate.parse(fechaEntrega));
-            t.setTurnoEntrega(turnoEntrega); // NUEVO
+            t.setTurnoEntrega(turnoEntrega);
             t.setEstadoActual(estadoActual);
             t.setTema(tema.get(i)); t.setMaquina(maquina.get(i)); t.setResolucion(resolucion.get(i)); t.setSustrato(sustrato.get(i));
             t.setAncho(ancho.get(i)); t.setAlto(alto.get(i)); t.setCantidad(cantidad.get(i));
@@ -179,15 +188,14 @@ public class TrabajoController {
 
     // --- ACCIONES Y MODIFICACIÓN ---
 
-    // EDITAR INDIVIDUAL (CON TURNO Y NOTA VB)
     @PostMapping("/actualizar")
     public String actualizarTrabajo(@RequestParam Long id,
                                     @RequestParam String maquina,
                                     @RequestParam String resolucion,
                                     @RequestParam(required = false) String pass,
                                     @RequestParam String fechaEntrega,
-                                    @RequestParam(required = false) String turnoEntrega, // NUEVO
-                                    @RequestParam(required = false) String notaVb,       // NUEVO
+                                    @RequestParam(required = false) String turnoEntrega,
+                                    @RequestParam(required = false) String notaVb,
                                     @RequestParam(required = false) String tipoDespacho,
                                     @RequestParam(required = false) String urlActual,
                                     @RequestHeader(value = "Referer", required = false) String referer) {
@@ -201,11 +209,7 @@ public class TrabajoController {
                     t.setTipoDespacho(tipoDespacho);
                 }
                 if (fechaEntrega != null && !fechaEntrega.isEmpty()) t.setFechaEntrega(LocalDate.parse(fechaEntrega));
-
-                // Actualizar Turno
                 if (turnoEntrega != null && !turnoEntrega.isEmpty()) { t.setTurnoEntrega(turnoEntrega); }
-
-                // Actualizar Nota VB
                 t.setNotaVb(notaVb);
 
                 trabajoService.guardarTrabajo(t);
@@ -254,40 +258,41 @@ public class TrabajoController {
         return "redirect:" + (referer != null ? referer : "/pauta?estado=HISTORICOS");
     }
 
-    // ******************************************************************************
-    // ACCIONES MASIVAS (CON TURNO)
-    // ******************************************************************************
+    // ACCIONES MASIVAS
     @PostMapping("/acciones/masivas")
     public String accionesMasivas(
             @RequestParam(required = false) List<Long> ids,
-            @RequestParam(required = false) String destino,       // Estado
-            @RequestParam(required = false) String maquina,       // Máquina
-            @RequestParam(required = false) String resolucion,    // Calidad
-            @RequestParam(required = false) String pass,          // Pasadas
-            @RequestParam(required = false) String tipoDespacho,  // Despacho
-            @RequestParam(required = false) String turnoEntrega,  // NUEVO: Turno
+            @RequestParam(required = false) String destino,
+            @RequestParam(required = false) String maquina,
+            @RequestParam(required = false) String resolucion,
+            @RequestParam(required = false) String pass,
+            @RequestParam(required = false) String tipoDespacho,
+            @RequestParam(required = false) String turnoEntrega,
             @RequestHeader(value = "Referer", required = false) String referer) {
 
         if (ids != null && !ids.isEmpty()) {
+            // Reutilizamos la lógica del servicio para movimiento masivo si es cambio de estado
+            if (destino != null && !destino.isEmpty()) {
+                trabajoService.moverMasivo(ids, destino);
+            }
+
+            // Para el resto de campos (maquina, pass, etc) hacemos update manual
+            // Ojo: si ya movimos con moverMasivo, los objetos en memoria 't' aquí abajo podrían ser viejos
+            // pero como redirigimos al final, no importa mucho.
             for (Long id : ids) {
                 try {
                     Trabajo t = trabajoService.obtenerPorId(id);
                     if (t != null) {
-                        // 1. Estado
-                        if (destino != null && !destino.isEmpty()) {
-                            try { t.setEstadoActual(EstadoTrabajo.valueOf(destino)); } catch (Exception e) {}
-                        }
-                        // 2. Máquina
+                        // Si NO hubo cambio de estado arriba, o queremos asegurar otros campos:
                         if (maquina != null && !maquina.trim().isEmpty()) { t.setMaquina(maquina); }
-                        // 3. Resolución
                         if (resolucion != null && !resolucion.isEmpty()) { t.setResolucion(resolucion); }
-                        // 4. Pass
                         if (pass != null && !pass.isEmpty()) { t.setPass(pass); }
-                        // 5. Despacho
                         if (tipoDespacho != null && !tipoDespacho.isEmpty()) { t.setTipoDespacho(tipoDespacho); }
-                        // 6. Turno (NUEVO)
                         if (turnoEntrega != null && !turnoEntrega.isEmpty()) { t.setTurnoEntrega(turnoEntrega); }
 
+                        // Solo guardamos si NO se movió de estado arriba (porque moverMasivo ya guarda)
+                        // O si queremos aplicar cambios adicionales.
+                        // Para simplificar y asegurar, guardamos igual.
                         trabajoService.guardarTrabajo(t);
                     }
                 } catch (Exception e) {

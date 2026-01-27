@@ -17,22 +17,32 @@ public class TrabajoService {
     @Autowired
     private TrabajoRepository trabajoRepository;
 
-    public List<Trabajo> obtenerTodos() { return trabajoRepository.findAll(); }
+    public List<Trabajo> obtenerTodos() {
+        return trabajoRepository.findAll();
+    }
 
     public List<Trabajo> obtenerPendientes(LocalDate fechaFiltro) {
-        if (fechaFiltro != null) return trabajoRepository.findByEstadoActualNotAndFechaEntregaOrderByOrdenAsc(EstadoTrabajo.HISTORICOS, fechaFiltro);
+        if (fechaFiltro != null)
+            return trabajoRepository.findByEstadoActualNotAndFechaEntregaOrderByOrdenAsc(EstadoTrabajo.HISTORICOS, fechaFiltro);
         return trabajoRepository.findByEstadoActualNotOrderByFechaEntregaAsc(EstadoTrabajo.HISTORICOS);
     }
 
-    public List<Trabajo> obtenerPorEstado(EstadoTrabajo estado) { return trabajoRepository.findByEstadoActualOrderByOrdenAsc(estado); }
+    public List<Trabajo> obtenerPorEstado(EstadoTrabajo estado) {
+        return trabajoRepository.findByEstadoActualOrderByOrdenAsc(estado);
+    }
 
     public List<Trabajo> buscarHistoricos(String palabraClave) {
         if (palabraClave != null) return trabajoRepository.buscarEnHistoricos(palabraClave);
         return trabajoRepository.findByEstadoActualOrderByOrdenAsc(EstadoTrabajo.HISTORICOS);
     }
 
-    public Trabajo obtenerPorId(Long id) { return trabajoRepository.findById(id).orElse(null); }
-    public void guardarTrabajo(Trabajo trabajo) { trabajoRepository.save(trabajo); }
+    public Trabajo obtenerPorId(Long id) {
+        return trabajoRepository.findById(id).orElse(null);
+    }
+
+    public void guardarTrabajo(Trabajo trabajo) {
+        trabajoRepository.save(trabajo);
+    }
 
     public void avanzarEstado(Long id) {
         Trabajo trabajo = trabajoRepository.findById(id).orElse(null);
@@ -41,16 +51,11 @@ public class TrabajoService {
             EstadoTrabajo[] estados = EstadoTrabajo.values();
             int indiceActual = actual.ordinal();
 
-            // Verificamos que no sea el último estado
             if (indiceActual < estados.length - 1) {
-                EstadoTrabajo nuevoEstado = estados[indiceActual + 1];
-                trabajo.setEstadoActual(nuevoEstado);
+                trabajo.setEstadoActual(estados[indiceActual + 1]);
 
-                // --- AQUÍ ESTÁ LA MAGIA ---
-                // Buscamos el último de la fila de destino y nos ponemos detrás
-                Long ultimoOrden = trabajoRepository.buscarUltimoOrden(nuevoEstado);
-                trabajo.setOrden(ultimoOrden + 1);
-                // --------------------------
+                // TRUCO: Usamos la hora actual. Es un número tan grande que SIEMPRE será el último.
+                trabajo.setOrden(System.currentTimeMillis());
 
                 trabajoRepository.save(trabajo);
             }
@@ -62,9 +67,14 @@ public class TrabajoService {
         if (t != null) {
             try {
                 t.setEstadoActual(EstadoTrabajo.valueOf(nombreEstado));
+
+                // TRUCO: Hora actual = Final de la fila garantizado
                 t.setOrden(System.currentTimeMillis());
+
                 trabajoRepository.save(t);
-            } catch (Exception e) {}
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -73,8 +83,11 @@ public class TrabajoService {
         if (actual != null) {
             Trabajo vecino = trabajoRepository.buscarVecinoArriba(actual.getEstadoActual().name(), actual.getOrden());
             if (vecino != null) {
-                Long temp = actual.getOrden(); actual.setOrden(vecino.getOrden()); vecino.setOrden(temp);
-                trabajoRepository.save(actual); trabajoRepository.save(vecino);
+                Long temp = actual.getOrden();
+                actual.setOrden(vecino.getOrden());
+                vecino.setOrden(temp);
+                trabajoRepository.save(actual);
+                trabajoRepository.save(vecino);
             }
         }
     }
@@ -84,8 +97,11 @@ public class TrabajoService {
         if (actual != null) {
             Trabajo vecino = trabajoRepository.buscarVecinoAbajo(actual.getEstadoActual().name(), actual.getOrden());
             if (vecino != null) {
-                Long temp = actual.getOrden(); actual.setOrden(vecino.getOrden()); vecino.setOrden(temp);
-                trabajoRepository.save(actual); trabajoRepository.save(vecino);
+                Long temp = actual.getOrden();
+                actual.setOrden(vecino.getOrden());
+                vecino.setOrden(temp);
+                trabajoRepository.save(actual);
+                trabajoRepository.save(vecino);
             }
         }
     }
@@ -116,17 +132,49 @@ public class TrabajoService {
         LocalDate hoy = LocalDate.now();
         LocalDate inicio = LocalDate.of(2000, 1, 1);
         LocalDate fin = LocalDate.of(2100, 12, 31);
-        if ("mes_actual".equals(periodo)) { inicio = hoy.with(TemporalAdjusters.firstDayOfMonth()); fin = hoy.with(TemporalAdjusters.lastDayOfMonth()); }
-        else if ("mes_anterior".equals(periodo)) { inicio = hoy.minusMonths(1).with(TemporalAdjusters.firstDayOfMonth()); fin = hoy.minusMonths(1).with(TemporalAdjusters.lastDayOfMonth()); }
-        else if ("anio_actual".equals(periodo)) { inicio = hoy.with(TemporalAdjusters.firstDayOfYear()); fin = hoy.with(TemporalAdjusters.lastDayOfYear()); }
+        if ("mes_actual".equals(periodo)) {
+            inicio = hoy.with(TemporalAdjusters.firstDayOfMonth());
+            fin = hoy.with(TemporalAdjusters.lastDayOfMonth());
+        } else if ("mes_anterior".equals(periodo)) {
+            inicio = hoy.minusMonths(1).with(TemporalAdjusters.firstDayOfMonth());
+            fin = hoy.minusMonths(1).with(TemporalAdjusters.lastDayOfMonth());
+        } else if ("anio_actual".equals(periodo)) {
+            inicio = hoy.with(TemporalAdjusters.firstDayOfYear());
+            fin = hoy.with(TemporalAdjusters.lastDayOfYear());
+        }
         return new LocalDate[]{inicio, fin};
     }
-    public List<KpiResult> getStatsSustratos(String periodo) { LocalDate[] r = calcularRango(periodo); return trabajoRepository.getKpiSustratos(r[0], r[1]); }
-    public List<KpiResult> getStatsMaquinas(String periodo) { LocalDate[] r = calcularRango(periodo); return trabajoRepository.getKpiMaquinas(r[0], r[1]); }
-    public List<KpiResult> getStatsResolucion(String periodo) { LocalDate[] r = calcularRango(periodo); return trabajoRepository.getKpiResolucion(r[0], r[1]); }
-    public List<KpiResult> getTopClientes(String periodo) { LocalDate[] r = calcularRango(periodo); return trabajoRepository.getTopClientes(r[0], r[1]); }
-    public Double getTotalM2(String periodo) { LocalDate[] r = calcularRango(periodo); Double t = trabajoRepository.getTotalM2Filtrado(r[0], r[1]); return (t!=null)?t:0.0; }
-    public Long getTotalOrdenes(String periodo) { LocalDate[] r = calcularRango(periodo); return trabajoRepository.getTotalOrdenesFiltrado(r[0], r[1]); }
+
+    public List<KpiResult> getStatsSustratos(String periodo) {
+        LocalDate[] r = calcularRango(periodo);
+        return trabajoRepository.getKpiSustratos(r[0], r[1]);
+    }
+
+    public List<KpiResult> getStatsMaquinas(String periodo) {
+        LocalDate[] r = calcularRango(periodo);
+        return trabajoRepository.getKpiMaquinas(r[0], r[1]);
+    }
+
+    public List<KpiResult> getStatsResolucion(String periodo) {
+        LocalDate[] r = calcularRango(periodo);
+        return trabajoRepository.getKpiResolucion(r[0], r[1]);
+    }
+
+    public List<KpiResult> getTopClientes(String periodo) {
+        LocalDate[] r = calcularRango(periodo);
+        return trabajoRepository.getTopClientes(r[0], r[1]);
+    }
+
+    public Double getTotalM2(String periodo) {
+        LocalDate[] r = calcularRango(periodo);
+        Double t = trabajoRepository.getTotalM2Filtrado(r[0], r[1]);
+        return (t != null) ? t : 0.0;
+    }
+
+    public Long getTotalOrdenes(String periodo) {
+        LocalDate[] r = calcularRango(periodo);
+        return trabajoRepository.getTotalOrdenesFiltrado(r[0], r[1]);
+    }
 
     // RESUMEN COLA
     public List<KpiResult> getResumenCola() {
@@ -165,22 +213,17 @@ public class TrabajoService {
         if (ids == null || ids.isEmpty()) return;
         try {
             EstadoTrabajo nuevoEstado = EstadoTrabajo.valueOf(nombreEstado);
+            long time = System.currentTimeMillis(); // Hora base
 
-            // 1. Vemos quién es el último de la fila AHORA
-            Long ultimoOrden = trabajoRepository.buscarUltimoOrden(nuevoEstado);
-
-            // 2. Traemos los trabajos que vamos a mover
             List<Trabajo> trabajos = trabajoRepository.findAllById(ids);
 
-            // 3. Los formamos uno tras otro al final de la cola
             for (int i = 0; i < trabajos.size(); i++) {
                 Trabajo t = trabajos.get(i);
                 t.setEstadoActual(nuevoEstado);
-                // Si el último era el 10, el primero de estos será el 11, luego 12, etc.
-                t.setOrden(ultimoOrden + (i + 1));
+                // Asignamos hora + 1, hora + 2... Todos quedarán al final.
+                t.setOrden(time + i);
             }
 
-            // Guardamos todos de una sola vez (Rápido)
             trabajoRepository.saveAll(trabajos);
 
         } catch (Exception e) {
