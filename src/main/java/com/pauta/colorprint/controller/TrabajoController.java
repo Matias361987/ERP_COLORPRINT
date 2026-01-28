@@ -36,6 +36,15 @@ public class TrabajoController {
                            @RequestParam(required = false) String fecha,
                            Model model) {
 
+        // --- 1. BLOQUE DE VELOCIDAD: Redirección Automática ---
+        // Si entra sin elegir estado, ni buscar, ni filtrar fecha...
+        // Lo mandamos directo a la primera etapa en vez de cargar "TODOS".
+        // Esto evita la consulta pesada a la base de datos.
+        if (estado == null && (keyword == null || keyword.isEmpty()) && (fecha == null || fecha.isEmpty())) {
+            return "redirect:/pauta?estado=REVISAR_ARCHIVO";
+        }
+        // --------------------------------------------------
+
         List<Trabajo> listaTrabajos = null;
         EstadoTrabajo estadoSeleccionado = null;
         LocalDate fechaFiltro = null;
@@ -64,10 +73,12 @@ public class TrabajoController {
                         }
                     }
                 } catch (IllegalArgumentException e) {
-                    estadoSeleccionado = null;
-                    listaTrabajos = trabajoService.obtenerPendientes(fechaFiltro);
+                    // Si el estado no existe, por seguridad redirigimos también
+                    return "redirect:/pauta?estado=REVISAR_ARCHIVO";
                 }
             } else {
+                // Este else ya casi no se usará por el if del principio,
+                // pero lo dejamos por seguridad lógica.
                 listaTrabajos = trabajoService.obtenerPendientes(fechaFiltro);
             }
         } catch (Exception e) {
@@ -81,7 +92,6 @@ public class TrabajoController {
         if (listaTrabajos != null && !listaTrabajos.isEmpty()) {
             listaTrabajos.sort(Comparator.comparing(Trabajo::getOrden, Comparator.nullsLast(Comparator.naturalOrder())));
         }
-        // ------------------------------------------
 
         model.addAttribute("trabajos", listaTrabajos);
         model.addAttribute("estadoActual", estadoSeleccionado);

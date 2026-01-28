@@ -79,453 +79,499 @@
 
 <div class="container-fluid px-4">
     <ul class="nav nav-pills mb-3">
-        <li class="nav-item"><a class="nav-link" th:classappend="${estadoActual == null} ? 'active'" href="/pauta">TODOS</a></li>
-        <li class="nav-item"><a class="nav-link" th:classappend="${estadoActual?.name() == 'REVISAR_ARCHIVO'} ? 'active'" href="/pauta?estado=REVISAR_ARCHIVO">1. Revisar</a></li>
-        <li class="nav-item"><a class="nav-link" th:classappend="${estadoActual?.name() == 'IMPRIMIR_VB'} ? 'active'" href="/pauta?estado=IMPRIMIR_VB">2. Imp VB</a></li>
-        <li class="nav-item"><a class="nav-link" th:classappend="${estadoActual?.name() == 'VB_IMPRESO'} ? 'active'" href="/pauta?estado=VB_IMPRESO">3. VB Imp.</a></li>
-        <li class="nav-item"><a class="nav-link" th:classappend="${estadoActual?.name() == 'VB_CLIENTE'} ? 'active'" href="/pauta?estado=VB_CLIENTE">4. VB Cte</a></li>
-        <li class="nav-item"><a class="nav-link" th:classappend="${estadoActual?.name() == 'VB_APROBADO'} ? 'active'" href="/pauta?estado=VB_APROBADO">5. Aprob.</a></li>
-        <li class="nav-item"><a class="nav-link" th:classappend="${estadoActual?.name() == 'COLA_DE_IMPRESION'} ? 'active'" href="/pauta?estado=COLA_DE_IMPRESION">6. Cola Imp</a></li>
-        <li class="nav-item"><a class="nav-link" th:classappend="${estadoActual?.name() == 'TERMINACIONES'} ? 'active'" href="/pauta?estado=TERMINACIONES">7. Termin.</a></li>
-        <li class="nav-item"><a class="nav-link" th:classappend="${estadoActual?.name() == 'SELLADO'} ? 'active'" href="/pauta?estado=SELLADO">8. Sellado</a></li>
-        <li class="nav-item"><a class="nav-link" th:classappend="${estadoActual?.name() == 'DESPACHOS'} ? 'active'" href="/pauta?estado=DESPACHOS">9. Despacho</a></li>
-        <li class="nav-item ms-3">
-            <a class="nav-link nav-link-standby" th:classappend="${estadoActual?.name() == 'STAND_BY'} ? 'active'" href="/pauta?estado=STAND_BY"><i class="fa-solid fa-pause me-1"></i> STAND BY</a>
-        </li>
-        <li class="nav-item ms-1">
-            <a class="nav-link bg-light text-muted border" th:classappend="${estadoActual?.name() == 'HISTORICOS'} ? 'active bg-dark text-white border-dark'" href="/pauta?estado=HISTORICOS">Históricos</a>
-        </li>
-    </ul>
+        <!--  <li class="nav-item"><a class="nav-link" th:classappend="${estadoActual == null} ? 'active'" href="/pauta">TODOS</a></li> -->
+         <li class="nav-item"><a class="nav-link" th:classappend="${estadoActual?.name() == 'REVISAR_ARCHIVO'} ? 'active'" href="/pauta?estado=REVISAR_ARCHIVO">1. Revisar</a></li>
+         <li class="nav-item"><a class="nav-link" th:classappend="${estadoActual?.name() == 'IMPRIMIR_VB'} ? 'active'" href="/pauta?estado=IMPRIMIR_VB">2. Imp VB</a></li>
+         <li class="nav-item"><a class="nav-link" th:classappend="${estadoActual?.name() == 'VB_IMPRESO'} ? 'active'" href="/pauta?estado=VB_IMPRESO">3. VB Imp.</a></li>
+         <li class="nav-item"><a class="nav-link" th:classappend="${estadoActual?.name() == 'VB_CLIENTE'} ? 'active'" href="/pauta?estado=VB_CLIENTE">4. VB Cte</a></li>
+         <li class="nav-item"><a class="nav-link" th:classappend="${estadoActual?.name() == 'VB_APROBADO'} ? 'active'" href="/pauta?estado=VB_APROBADO">5. Aprob.</a></li>
+         <li class="nav-item"><a class="nav-link" th:classappend="${estadoActual?.name() == 'COLA_DE_IMPRESION'} ? 'active'" href="/pauta?estado=COLA_DE_IMPRESION">6. Cola Imp</a></li>
+         <li class="nav-item"><a class="nav-link" th:classappend="${estadoActual?.name() == 'TERMINACIONES'} ? 'active'" href="/pauta?estado=TERMINACIONES">7. Termin.</a></li>
+         <li class="nav-item"><a class="nav-link" th:classappend="${estadoActual?.name() == 'SELLADO'} ? 'active'" href="/pauta?estado=SELLADO">8. Sellado</a></li>
+         <li class="nav-item"><a class="nav-link" th:classappend="${estadoActual?.name() == 'DESPACHOS'} ? 'active'" href="/pauta?estado=DESPACHOS">9. Despacho</a></li>
+         <li class="nav-item ms-3">
+             <a class="nav-link nav-link-standby" th:classappend="${estadoActual?.name() == 'STAND_BY'} ? 'active'" href="/pauta?estado=STAND_BY"><i class="fa-solid fa-pause me-1"></i> STAND BY</a>
+         </li>
+         <li class="nav-item ms-1">
+             <a class="nav-link bg-light text-muted border" th:classappend="${estadoActual?.name() == 'HISTORICOS'} ? 'active bg-dark text-white border-dark'" href="/pauta?estado=HISTORICOS">Históricos</a>
+         </li>
+     </ul>
 
-    <div class="row g-2 mb-3 no-print" th:if="${estadoActual?.name() == 'COLA_DE_IMPRESION' and not #lists.isEmpty(resumenMateriales)}">
-        <div class="col-12">
-            <div class="card border-0 bg-dark text-white shadow-sm">
-                <div class="card-body py-2 d-flex align-items-center justify-content-between">
-                    <span class="small fw-bold text-warning text-uppercase me-3"><i class="fa-solid fa-chart-simple me-2"></i>CONSUMO TOTAL PENDIENTE:</span>
-                    <div class="d-flex gap-3 overflow-auto">
-                        <div th:each="mat : ${resumenMateriales}" class="d-flex align-items-center bg-white text-dark rounded-pill px-3 py-1 small">
-                            <span class="fw-bold me-2" th:text="${mat.nombre}">PVC</span>
-                            <span class="badge bg-primary rounded-pill" th:text="${#numbers.formatDecimal(mat.valor, 1, 1) + ' m²'}">100.0 m²</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+     <div class="row g-2 mb-3 no-print" th:if="${estadoActual?.name() == 'COLA_DE_IMPRESION' and not #lists.isEmpty(resumenMateriales)}">
+         <div class="col-12">
+             <div class="card border-0 bg-dark text-white shadow-sm">
+                 <div class="card-body py-2 d-flex align-items-center justify-content-between">
+                     <span class="small fw-bold text-warning text-uppercase me-3"><i class="fa-solid fa-chart-simple me-2"></i>CONSUMO TOTAL PENDIENTE:</span>
+                     <div class="d-flex gap-3 overflow-auto">
+                         <div th:each="mat : ${resumenMateriales}" class="d-flex align-items-center bg-white text-dark rounded-pill px-3 py-1 small">
+                             <span class="fw-bold me-2" th:text="${mat.nombre}">PVC</span>
+                             <span class="badge bg-primary rounded-pill" th:text="${#numbers.formatDecimal(mat.valor, 1, 1) + ' m²'}">100.0 m²</span>
+                         </div>
+                     </div>
+                 </div>
+             </div>
+         </div>
+     </div>
 
-    <div class="card border-0 shadow-sm mb-3 bg-white no-print">
-        <div class="card-body py-3">
-            <form action="/pauta" method="get" class="row g-2 align-items-center">
-                <input type="hidden" name="estado" th:value="${estadoActual}">
-                <div class="col-auto"><span class="fw-bold text-secondary small"><i class="fa-solid fa-filter me-2"></i>BUSCAR:</span></div>
-                <div class="col-auto flex-grow-1"><input type="text" name="keyword" class="form-control form-control-sm" placeholder="Cliente, OT o Tema..." th:value="${keyword}"></div>
-                <div class="col-auto"><button type="submit" class="btn btn-dark btn-sm px-4 fw-bold"><i class="fa-solid fa-magnifying-glass me-1"></i></button></div>
-                <div class="col-auto" th:if="${keyword != null and keyword != ''}">
-                    <a th:href="@{/pauta(estado=${estadoActual})}" class="btn btn-outline-secondary btn-sm"><i class="fa-solid fa-xmark"></i></a>
-                </div>
-            </form>
-        </div>
-    </div>
+     <div class="card border-0 shadow-sm mb-3 bg-white no-print">
+         <div class="card-body py-3">
+             <form action="/pauta" method="get" class="row g-2 align-items-center">
+                 <input type="hidden" name="estado" th:value="${estadoActual}">
+                 <div class="col-auto"><span class="fw-bold text-secondary small"><i class="fa-solid fa-filter me-2"></i>BUSCAR:</span></div>
+                 <div class="col-auto flex-grow-1"><input type="text" name="keyword" class="form-control form-control-sm" placeholder="Cliente, OT o Tema..." th:value="${keyword}"></div>
+                 <div class="col-auto"><button type="submit" class="btn btn-dark btn-sm px-4 fw-bold"><i class="fa-solid fa-magnifying-glass me-1"></i></button></div>
+                 <div class="col-auto" th:if="${keyword != null and keyword != ''}">
+                     <a th:href="@{/pauta(estado=${estadoActual})}" class="btn btn-outline-secondary btn-sm"><i class="fa-solid fa-xmark"></i></a>
+                 </div>
+             </form>
+         </div>
+     </div>
 
-    <div class="card border-0 shadow-sm mb-3 bg-white no-print" th:if="${estadoActual == null}">
-        <div class="card-body py-2 px-3">
-            <form action="/pauta" method="get" class="d-flex align-items-center gap-3">
-                <span class="fw-bold text-primary small"><i class="fa-regular fa-calendar-check me-2"></i>AGENDA DE ENTREGAS:</span>
-                <div class="d-flex align-items-center"><input type="date" name="fecha" class="form-control form-control-sm" th:value="${fechaFiltro}" onchange="this.form.submit()"></div>
-                <div th:if="${fechaFiltro != null}"><a href="/pauta" class="btn btn-sm btn-outline-danger border-0"><i class="fa-solid fa-xmark me-1"></i> Ver Todo</a></div>
-            </form>
-        </div>
-    </div>
+     <div class="card border-0 shadow-sm mb-3 bg-white no-print" th:if="${estadoActual == null}">
+         <div class="card-body py-2 px-3">
+             <form action="/pauta" method="get" class="d-flex align-items-center gap-3">
+                 <span class="fw-bold text-primary small"><i class="fa-regular fa-calendar-check me-2"></i>AGENDA DE ENTREGAS:</span>
+                 <div class="d-flex align-items-center"><input type="date" name="fecha" class="form-control form-control-sm" th:value="${fechaFiltro}" onchange="this.form.submit()"></div>
+                 <div th:if="${fechaFiltro != null}"><a href="/pauta" class="btn btn-sm btn-outline-danger border-0"><i class="fa-solid fa-xmark me-1"></i> Ver Todo</a></div>
+             </form>
+         </div>
+     </div>
 
-    <div class="d-flex justify-content-end mb-2 no-print" th:if="${estadoActual?.name() == 'COLA_DE_IMPRESION'}">
-        <button onclick="window.print()" class="btn btn-dark btn-sm fw-bold shadow-sm px-4">
-            <i class="fa-solid fa-print me-2"></i> IMPRIMIR COLA
-        </button>
-    </div>
+     <div class="d-flex justify-content-end mb-2 no-print" th:if="${estadoActual?.name() == 'COLA_DE_IMPRESION'}">
+         <button onclick="window.print()" class="btn btn-dark btn-sm fw-bold shadow-sm px-4">
+             <i class="fa-solid fa-print me-2"></i> IMPRIMIR COLA
+         </button>
+     </div>
 
-    <div class="print-header">
-        <h2>PLANILLA DE PRODUCCIÓN - <span th:text="${estadoActual != null ? estadoActual : 'GENERAL'}"></span></h2>
-        <p class="small">Generado: <script>document.write(new Date().toLocaleDateString());</script></p>
-    </div>
+     <div class="print-header">
+         <h2>PLANILLA DE PRODUCCIÓN - <span th:text="${estadoActual != null ? estadoActual : 'GENERAL'}"></span></h2>
+         <p class="small">Generado: <script>document.write(new Date().toLocaleDateString());</script></p>
+     </div>
 
-    <div class="card border-0 shadow-sm rounded-3">
-        <div class="card-body p-0">
-            <div class="table-responsive" style="min-height: 400px;">
-                <table class="table table-hover align-middle mb-0 text-center small" style="font-size: 0.85rem;">
-                    <thead class="table-dark text-uppercase">
-                    <tr>
-                        <th style="width: 30px;" class="no-print"><input type="checkbox" id="checkAll" class="form-check-input" onclick="toggleAll(this)"></th>
+     <div class="card border-0 shadow-sm rounded-3">
+         <div class="card-body p-0">
+             <div class="table-responsive" style="min-height: 400px;">
+                 <table class="table table-hover align-middle mb-0 text-center small" style="font-size: 0.85rem;">
+                     <thead class="table-dark text-uppercase">
+                     <tr>
+                         <th style="width: 30px;" class="no-print"><input type="checkbox" id="checkAll" class="form-check-input" onclick="toggleAll(this)"></th>
 
-                        <th th:if="${estadoActual != null and estadoActual.name() != 'HISTORICOS'}" style="width: 40px;"></th>
+                         <th th:if="${estadoActual != null and estadoActual.name() != 'HISTORICOS'}" style="width: 40px;"></th>
 
-                        <th>OT</th>
-                        <th class="text-start">Cliente / Tema / Vend.</th>
-                        <th>Máq / Sustrato</th>
-                        <th>Medidas (Cant)</th>
-                        <th>M²</th>
-                        <th style="min-width: 250px;">Terminaciones</th>
-                        <th class="text-info">Tipo</th>
-                        <th class="text-info text-start">Dirección</th>
-                        <th>Entrega</th>
-                        <th>Estado</th>
-                        <th class="no-print">Acciones</th>
-                    </tr>
-                    </thead>
-                    <tbody id="sortable-table">
-                    <tr th:if="${#lists.isEmpty(trabajos)}"><td colspan="13" class="py-5 text-muted fst-italic">No hay trabajos en esta bandeja.</td></tr>
+                         <th>OT</th>
+                         <th class="text-start">Cliente / Tema / Vend.</th>
+                         <th>Máq / Sustrato</th>
+                         <th>Medidas (Cant)</th>
+                         <th>M²</th>
+                         <th style="min-width: 250px;">Terminaciones</th>
+                         <th class="text-info">Tipo</th>
+                         <th class="text-info text-start">Dirección</th>
+                         <th>Entrega</th>
+                         <th>Estado</th>
+                         <th class="no-print">Acciones</th>
+                     </tr>
+                     </thead>
+                     <tbody id="sortable-table">
+                     <tr th:if="${#lists.isEmpty(trabajos)}"><td colspan="13" class="py-5 text-muted fst-italic">No hay trabajos en esta bandeja.</td></tr>
 
-                    <tr th:each="t : ${trabajos}" th:data-id="${t.id}" class="bg-white">
-                        <td class="no-print">
-                            <input type="checkbox" class="form-check-input check-item"
-                                   th:value="${t.id}"
-                                   th:data-m2="${t.m2Totales}"
-                                   onclick="actualizarBarraMasiva()">
-                        </td>
+                     <tr th:each="t : ${trabajos}" th:data-id="${t.id}" class="bg-white">
+                         <td class="no-print">
+                             <input type="checkbox" class="form-check-input check-item"
+                                    th:value="${t.id}"
+                                    th:data-m2="${t.m2Totales}"
+                                    onclick="actualizarBarraMasiva()">
+                         </td>
 
-                        <td th:if="${estadoActual != null and estadoActual.name() != 'HISTORICOS'}" class="text-center">
-                            <i class="fa-solid fa-grip-vertical cursor-grab text-muted" title="Arrastrar para ordenar"></i>
-                        </td>
+                         <td th:if="${estadoActual != null and estadoActual.name() != 'HISTORICOS'}" class="text-center">
+                             <i class="fa-solid fa-grip-vertical cursor-grab text-muted" title="Arrastrar para ordenar"></i>
+                         </td>
 
-                        <td class="fw-bold" th:text="${t.ot}"></td>
+                         <td class="fw-bold" th:text="${t.ot}"></td>
 
-                        <td class="text-start">
-                            <div class="fw-bold text-dark" th:text="${t.cliente}"></div>
-                            <div class="text-muted small text-uppercase mb-1" th:text="${t.tema}"></div>
-                            <span class="badge-vendedora" th:if="${t.vendedora != null}">
-                                <i class="fa-solid fa-user-tag me-1"></i> <span th:text="${t.vendedora}"></span>
-                            </span>
+                         <td class="text-start">
+                             <div class="fw-bold text-dark" th:text="${t.cliente}"></div>
+                             <div class="text-muted small text-uppercase mb-1" th:text="${t.tema}"></div>
+                             <span class="badge-vendedora" th:if="${t.vendedora != null}">
+                                 <i class="fa-solid fa-user-tag me-1"></i> <span th:text="${t.vendedora}"></span>
+                             </span>
 
-                            <div th:if="${t.notaVb != null and t.notaVb != ''}" class="mt-1 p-1 bg-warning bg-opacity-10 border border-warning rounded small text-dark">
-                                <i class="fa-solid fa-note-sticky text-warning me-1"></i>
-                                <strong class="text-uppercase" style="font-size: 0.7rem;">Nota VB:</strong>
-                                <span th:text="${t.notaVb}" class="fst-italic"></span>
-                            </div>
-                        </td>
+                             <div th:if="${t.notaVb != null and t.notaVb != ''}" class="mt-1 p-1 bg-warning bg-opacity-10 border border-warning rounded small text-dark">
+                                 <i class="fa-solid fa-note-sticky text-warning me-1"></i>
+                                 <strong class="text-uppercase" style="font-size: 0.7rem;">Nota VB:</strong>
+                                 <span th:text="${t.notaVb}" class="fst-italic"></span>
+                             </div>
+                         </td>
 
-                        <td>
-                            <div th:text="${t.maquina}" class="fw-bold"></div>
-                            <div th:text="${t.sustrato}" class="small text-muted text-uppercase" style="font-size: 0.75rem;"></div>
-                            <div class="d-flex gap-1 justify-content-center mt-1">
-                                <span class="badge rounded-pill" th:classappend="${t.resolucion == 'Alta'} ? 'badge-res-alta' : 'badge-res-baja'" th:text="${t.resolucion}"></span>
-                                <span th:if="${t.pass != null and t.pass != ''}" class="badge bg-secondary rounded-pill" th:text="${t.pass}"></span>
-                            </div>
-                        </td>
-                        <td><span th:text="${t.ancho}"></span> x <span th:text="${t.alto}"></span><br><span class="badge bg-light text-dark border">x <span th:text="${t.cantidad}"></span></span></td>
-                        <td class="fw-bold" style="color: #d63384;" th:text="${#numbers.formatDecimal(t.m2Totales, 1, 2)}"></td>
-                        <td class="text-muted text-start" style="white-space: normal; word-wrap: break-word; line-height: 1.3;" th:text="${t.terminaciones}"></td>
-                        <td class="fw-bold text-info" th:text="${t.tipoDespacho}"></td>
-                        <td class="text-start small text-muted" th:text="${t.despacharA}"></td>
+                         <td>
+                             <div th:text="${t.maquina}" class="fw-bold"></div>
+                             <div th:text="${t.sustrato}" class="small text-muted text-uppercase" style="font-size: 0.75rem;"></div>
+                             <div class="d-flex gap-1 justify-content-center mt-1">
+                                 <span class="badge rounded-pill" th:classappend="${t.resolucion == 'Alta'} ? 'badge-res-alta' : 'badge-res-baja'" th:text="${t.resolucion}"></span>
+                                 <span th:if="${t.pass != null and t.pass != ''}" class="badge bg-secondary rounded-pill" th:text="${t.pass}"></span>
+                             </div>
+                         </td>
+                         <td><span th:text="${t.ancho}"></span> x <span th:text="${t.alto}"></span><br><span class="badge bg-light text-dark border">x <span th:text="${t.cantidad}"></span></span></td>
+                         <td class="fw-bold" style="color: #d63384;" th:text="${#numbers.formatDecimal(t.m2Totales, 1, 2)}"></td>
+                         <td class="text-muted text-start" style="white-space: normal; word-wrap: break-word; line-height: 1.3;" th:text="${t.terminaciones}"></td>
+                         <td class="fw-bold text-info" th:text="${t.tipoDespacho}"></td>
+                         <td class="text-start small text-muted" th:text="${t.despacharA}"></td>
 
-                        <td style="min-width: 180px;">
-                            <div th:with="hoy=${T(java.time.LocalDate).now()}"
-                                 class="d-inline-flex align-items-center justify-content-center gap-2 px-3 py-1 rounded-pill border shadow-sm w-100"
-                                 style="font-size: 0.8rem;"
-                                 th:classappend="${estadoActual?.name() == 'HISTORICOS'} ? 'bg-light text-secondary border-light-subtle' :
-                                                (${t.fechaEntrega.isBefore(hoy.plusDays(1))} ? 'bg-danger-subtle text-danger border-danger-subtle fw-bold' :
-                                                (${t.fechaEntrega.isEqual(hoy.plusDays(1))} ? 'bg-orange-custom fw-bold' :
-                                                (${t.fechaEntrega.isEqual(hoy.plusDays(2))} ? 'bg-warning-subtle text-dark border-warning-subtle fw-bold' :
-                                                'bg-success-subtle text-success border-success-subtle')))">
+                         <td style="min-width: 180px;">
+                             <div th:with="hoy=${T(java.time.LocalDate).now()}"
+                                  class="d-inline-flex align-items-center justify-content-center gap-2 px-3 py-1 rounded-pill border shadow-sm w-100"
+                                  style="font-size: 0.8rem;"
+                                  th:classappend="${estadoActual?.name() == 'HISTORICOS'} ? 'bg-light text-secondary border-light-subtle' :
+                                                 (${t.fechaEntrega.isBefore(hoy.plusDays(1))} ? 'bg-danger-subtle text-danger border-danger-subtle fw-bold' :
+                                                 (${t.fechaEntrega.isEqual(hoy.plusDays(1))} ? 'bg-orange-custom fw-bold' :
+                                                 (${t.fechaEntrega.isEqual(hoy.plusDays(2))} ? 'bg-warning-subtle text-dark border-warning-subtle fw-bold' :
+                                                 'bg-success-subtle text-success border-success-subtle')))">
 
-                                <span th:if="${t.turnoEntrega == 'AM'}" class="badge bg-warning text-dark me-2" style="font-size: 0.7rem;">AM</span>
-                                <span th:if="${t.turnoEntrega == 'PM' or t.turnoEntrega == null}" class="badge bg-secondary text-white me-2" style="font-size: 0.7rem;">PM</span>
-                                <span class="text-uppercase text-nowrap"
-                                      th:text="${#strings.capitalize(#temporals.format(t.fechaEntrega, 'EEEE dd MMM', new java.util.Locale('es', 'ES')))}">
-                                    Fecha
-                                </span>
-                            </div>
-                        </td>
+                                 <span th:if="${t.turnoEntrega == 'AM'}" class="badge bg-warning text-dark me-2" style="font-size: 0.7rem;">AM</span>
+                                 <span th:if="${t.turnoEntrega == 'PM' or t.turnoEntrega == null}" class="badge bg-secondary text-white me-2" style="font-size: 0.7rem;">PM</span>
+                                 <span class="text-uppercase text-nowrap"
+                                       th:text="${#strings.capitalize(#temporals.format(t.fechaEntrega, 'EEEE dd MMM', new java.util.Locale('es', 'ES')))}">
+                                     Fecha
+                                 </span>
+                             </div>
+                         </td>
 
-                        <td><span class="badge bg-secondary bg-opacity-75 text-white" th:text="${t.estadoActual}"></span></td>
+                         <td><span class="badge bg-secondary bg-opacity-75 text-white" th:text="${t.estadoActual}"></span></td>
 
-                        <td class="no-print">
-                            <div class="d-flex justify-content-center gap-2 align-items-center">
-                                <button type="button" class="btn btn-light btn-sm text-primary"
-                                        th:data-id="${t.id}"
-                                        th:data-maquina="${t.maquina}"
-                                        th:data-resolucion="${t.resolucion}"
-                                        th:data-pass="${t.pass}"
-                                        th:data-fecha="${t.fechaEntrega}"
-                                        th:data-turno="${t.turnoEntrega}"
-                                        th:data-tipo="${t.tipoDespacho}"
-                                        th:data-notavb="${t.notaVb}"
-                                        onclick="abrirModalEditar(
-                                            this.getAttribute('data-id'),
-                                            this.getAttribute('data-maquina'),
-                                            this.getAttribute('data-resolucion'),
-                                            this.getAttribute('data-pass'),
-                                            this.getAttribute('data-fecha'),
-                                            this.getAttribute('data-turno'),
-                                            this.getAttribute('data-tipo'),
-                                            this.getAttribute('data-notavb')
-                                        )">
-                                    <i class="fa-solid fa-pen"></i>
-                                </button>
+                         <td class="no-print">
+                             <div class="d-flex justify-content-center gap-2 align-items-center">
+                                 <button type="button" class="btn btn-light btn-sm text-primary"
+                                         th:data-id="${t.id}"
+                                         th:data-maquina="${t.maquina}"
+                                         th:data-resolucion="${t.resolucion}"
+                                         th:data-pass="${t.pass}"
+                                         th:data-fecha="${t.fechaEntrega}"
+                                         th:data-turno="${t.turnoEntrega}"
+                                         th:data-tipo="${t.tipoDespacho}"
+                                         th:data-notavb="${t.notaVb}"
+                                         onclick="abrirModalEditar(
+                                             this.getAttribute('data-id'),
+                                             this.getAttribute('data-maquina'),
+                                             this.getAttribute('data-resolucion'),
+                                             this.getAttribute('data-pass'),
+                                             this.getAttribute('data-fecha'),
+                                             this.getAttribute('data-turno'),
+                                             this.getAttribute('data-tipo'),
+                                             this.getAttribute('data-notavb')
+                                         )">
+                                     <i class="fa-solid fa-pen"></i>
+                                 </button>
 
-                                <form th:if="${t.estadoActual.name() != 'STAND_BY' and t.estadoActual.name() != 'HISTORICOS'}"
-                                      th:action="@{/standby/{id}(id=${t.id})}" method="post">
-                                    <button type="submit" class="btn btn-light btn-sm text-warning"><i class="fa-solid fa-pause"></i></button>
-                                </form>
+                                 <form th:if="${t.estadoActual.name() != 'STAND_BY' and t.estadoActual.name() != 'HISTORICOS'}"
+                                       th:action="@{/standby/{id}(id=${t.id})}" method="post">
+                                     <button type="submit" class="btn btn-light btn-sm text-warning"><i class="fa-solid fa-pause"></i></button>
+                                 </form>
 
-                                <form th:if="${t.estadoActual.name() == 'HISTORICOS'}" th:action="@{/eliminar-trabajo/{id}(id=${t.id})}" method="post" onsubmit="return confirm('¿Borrar permanentemente?');">
-                                    <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-bold"><i class="fa-solid fa-trash-can me-1"></i> Borrar</button>
-                                </form>
-                            </div>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-</div>
+                                 <form th:if="${t.estadoActual.name() == 'HISTORICOS'}" th:action="@{/eliminar-trabajo/{id}(id=${t.id})}" method="post" onsubmit="return confirm('¿Borrar permanentemente?');">
+                                     <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-bold"><i class="fa-solid fa-trash-can me-1"></i> Borrar</button>
+                                 </form>
+                             </div>
+                         </td>
+                     </tr>
+                     </tbody>
+                 </table>
+             </div>
+         </div>
+     </div>
+ </div>
 
-<div id="barraMasiva">
-    <div class="d-flex align-items-center gap-3 border-end border-secondary pe-3 me-2">
-        <h5 class="m-0"><span class="badge bg-warning text-dark" id="contadorMasivo">0</span></h5>
-        <h5 class="m-0">
-            <span class="badge bg-info text-dark">
-                <i class="fa-solid fa-ruler-combined me-1"></i>
-                <span id="totalM2Masivo">0.00</span> m²
-            </span>
-        </h5>
-    </div>
+ <div id="barraMasiva">
+     <div class="d-flex align-items-center gap-3 border-end border-secondary pe-3 me-2">
+         <h5 class="m-0"><span class="badge bg-warning text-dark" id="contadorMasivo">0</span></h5>
+         <h5 class="m-0">
+             <span class="badge bg-info text-dark">
+                 <i class="fa-solid fa-ruler-combined me-1"></i>
+                 <span id="totalM2Masivo">0.00</span> m²
+             </span>
+         </h5>
+     </div>
 
-    <form action="/acciones/masivas" method="post" class="d-flex align-items-center gap-2 m-0 flex-grow-1" id="formMasivo">
-        <div id="idsContainer"></div>
+     <form action="/acciones/masivas" method="post" class="d-flex align-items-center gap-2 m-0 flex-grow-1" id="formMasivo">
+         <div id="idsContainer"></div>
 
-        <div class="input-group input-group-sm input-group-masivo" style="width: auto;">
-            <span class="input-group-text"><i class="fa-solid fa-print"></i></span>
-            <input type="text" name="maquina" class="form-control" placeholder="Máquina..." style="width: 100px;">
+         <div class="input-group input-group-sm input-group-masivo" style="width: auto;">
+             <span class="input-group-text"><i class="fa-solid fa-print"></i></span>
+             <input type="text" name="maquina" class="form-control" placeholder="Máquina..." style="width: 100px;">
 
-            <span class="input-group-text"><i class="fa-solid fa-eye"></i></span>
-            <select name="resolucion" class="form-select" style="width: 80px;">
-                <option value="">Calidad</option>
-                <option value="Alta">Alta</option>
-                <option value="Baja">Baja</option>
-            </select>
+             <span class="input-group-text"><i class="fa-solid fa-eye"></i></span>
+             <select name="resolucion" class="form-select" style="width: 80px;">
+                 <option value="">Calidad</option>
+                 <option value="Alta">Alta</option>
+                 <option value="Baja">Baja</option>
+             </select>
 
-            <span class="input-group-text"><i class="fa-solid fa-layer-group"></i></span>
-            <select name="pass" class="form-select" style="width: 90px;">
-                <option value="">Pass</option>
-                <option value="1 pass">1 pass</option>
-                <option value="2 pass">2 pass</option>
-                <option value="3 pass">3 pass</option>
-                <option value="4 pass">4 pass</option>
-                <option value="6 pass">6 pass</option>
-                <option value="8 pass">8 pass</option>
-            </select>
-        </div>
+             <span class="input-group-text"><i class="fa-solid fa-layer-group"></i></span>
+             <select name="pass" class="form-select" style="width: 90px;">
+                 <option value="">Pass</option>
+                 <option value="1 pass">1 pass</option>
+                 <option value="2 pass">2 pass</option>
+                 <option value="3 pass">3 pass</option>
+                 <option value="4 pass">4 pass</option>
+                 <option value="6 pass">6 pass</option>
+                 <option value="8 pass">8 pass</option>
+             </select>
+         </div>
 
-        <div class="input-group input-group-sm input-group-masivo" style="width: auto;">
-            <span class="input-group-text"><i class="fa-regular fa-clock"></i></span>
-            <select name="turnoEntrega" class="form-select" style="width: 90px;">
-                <option value="">Turno...</option>
-                <option value="AM">Mañana</option>
-                <option value="PM">Tarde</option>
-            </select>
-        </div>
+         <div class="input-group input-group-sm input-group-masivo" style="width: auto;">
+             <span class="input-group-text"><i class="fa-regular fa-clock"></i></span>
+             <select name="turnoEntrega" class="form-select" style="width: 90px;">
+                 <option value="">Turno...</option>
+                 <option value="AM">Mañana</option>
+                 <option value="PM">Tarde</option>
+             </select>
+         </div>
 
-        <div class="input-group input-group-sm input-group-masivo" style="width: auto;">
-            <span class="input-group-text"><i class="fa-solid fa-truck"></i></span>
-            <select name="tipoDespacho" class="form-select" style="width: 130px;">
-                <option value="">Despacho...</option>
-                <option value="Retiro Taller">Retiro Taller</option>
-                <option value="Despacho Santiago">Despacho Stgo</option>
-                <option value="Despacho Región">Despacho Región</option>
-            </select>
-        </div>
+         <div class="input-group input-group-sm input-group-masivo" style="width: auto;">
+             <span class="input-group-text"><i class="fa-solid fa-truck"></i></span>
+             <select name="tipoDespacho" class="form-select" style="width: 130px;">
+                 <option value="">Despacho...</option>
+                 <option value="Retiro Taller">Retiro Taller</option>
+                 <option value="Despacho Santiago">Despacho Santiago</option>
+                 <option value="Despacho Región">Despacho Región</option>
+             </select>
+         </div>
 
-        <div class="vr bg-secondary mx-1" style="height: 30px;"></div>
+         <div class="vr bg-secondary mx-1" style="height: 30px;"></div>
 
-        <select name="destino" class="form-select form-select-sm bg-warning text-dark fw-bold border-warning" style="width: 160px;">
-            <option value="">- Mover a... -</option>
-            <option value="REVISAR_ARCHIVO">1. Revisar Archivo</option>
-            <option value="IMPRIMIR_VB">2. Imprimir VB</option>
-            <option value="VB_IMPRESO">3. VB Impreso</option>
-            <option value="VB_CLIENTE">4. VB Cliente</option>
-            <option value="VB_APROBADO">5. Aprobado</option>
-            <option value="COLA_DE_IMPRESION">6. Cola Impresión</option>
-            <option value="TERMINACIONES">7. Terminaciones</option>
-            <option value="SELLADO">8. Sellado</option>
-            <option value="DESPACHOS">9. Despachos</option>
-            <option value="HISTORICOS">Finalizar</option>
-        </select>
+         <select name="destino" class="form-select form-select-sm bg-warning text-dark fw-bold border-warning" style="width: 160px;">
+             <option value="">- Mover a... -</option>
+             <option value="REVISAR_ARCHIVO">1. Revisar Archivo</option>
+             <option value="IMPRIMIR_VB">2. Imprimir VB</option>
+             <option value="VB_IMPRESO">3. VB Impreso</option>
+             <option value="VB_CLIENTE">4. VB Cliente</option>
+             <option value="VB_APROBADO">5. Aprobado</option>
+             <option value="COLA_DE_IMPRESION">6. Cola Impresión</option>
+             <option value="TERMINACIONES">7. Terminaciones</option>
+             <option value="SELLADO">8. Sellado</option>
+             <option value="DESPACHOS">9. Despachos</option>
+             <option value="HISTORICOS">Finalizar</option>
+         </select>
 
-        <button type="submit" class="btn btn-light fw-bold btn-sm px-3">
-            <i class="fa-solid fa-check"></i>
-        </button>
-    </form>
-</div>
+         <button type="submit" class="btn btn-light fw-bold btn-sm px-3">
+             <i class="fa-solid fa-check"></i>
+         </button>
+     </form>
+ </div>
 
-<div class="modal fade" id="modalEditar" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow">
-            <div class="modal-header bg-dark text-white">
-                <h6 class="modal-title fw-bold">MODIFICAR TRABAJO</h6>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body bg-light">
-                <form th:action="@{/actualizar}" method="post">
-                    <input type="hidden" id="editId" name="id">
-                    <input type="hidden" id="urlActual" name="urlActual">
+ <div class="modal fade" id="modalEditar" tabindex="-1">
+     <div class="modal-dialog modal-dialog-centered">
+         <div class="modal-content border-0 shadow">
+             <div class="modal-header bg-dark text-white">
+                 <h6 class="modal-title fw-bold">MODIFICAR TRABAJO</h6>
+                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+             </div>
+             <div class="modal-body bg-light">
+                 <form th:action="@{/actualizar}" method="post">
+                     <input type="hidden" id="editId" name="id">
+                     <input type="hidden" id="urlActual" name="urlActual">
 
-                    <div class="row mb-3">
-                        <div class="col-5">
-                            <label class="form-label fw-bold small text-muted">MÁQUINA</label>
-                            <input type="text" id="editMaquina" name="maquina" class="form-control">
-                        </div>
-                        <div class="col-4">
-                            <label class="form-label fw-bold small text-muted">CALIDAD</label>
-                            <select id="editResolucion" name="resolucion" class="form-select">
-                                <option value="Alta">Alta</option>
-                                <option value="Baja">Baja</option>
-                            </select>
-                        </div>
-                        <div class="col-3">
-                            <label class="form-label fw-bold small text-muted">PASS</label>
-                            <select id="editPass" name="pass" class="form-select">
-                                <option value="">-</option>
-                                <option value="1 pass">1 pass</option>
-                                <option value="2 pass">2 pass</option>
-                                <option value="3 pass">3 pass</option>
-                                <option value="4 pass">4 pass</option>
-                                <option value="6 pass">6 pass</option>
-                                <option value="8 pass">8 pass</option>
-                            </select>
-                        </div>
-                    </div>
+                     <div class="row mb-3">
+                         <div class="col-5">
+                             <label class="form-label fw-bold small text-muted">MÁQUINA</label>
+                             <input type="text" id="editMaquina" name="maquina" class="form-control">
+                         </div>
+                         <div class="col-4">
+                             <label class="form-label fw-bold small text-muted">CALIDAD</label>
+                             <select id="editResolucion" name="resolucion" class="form-select">
+                                 <option value="Alta">Alta</option>
+                                 <option value="Baja">Baja</option>
+                             </select>
+                         </div>
+                         <div class="col-3">
+                             <label class="form-label fw-bold small text-muted">PASS</label>
+                             <select id="editPass" name="pass" class="form-select">
+                                 <option value="">-</option>
+                                 <option value="1 pass">1 pass</option>
+                                 <option value="2 pass">2 pass</option>
+                                 <option value="3 pass">3 pass</option>
+                                 <option value="4 pass">4 pass</option>
+                                 <option value="6 pass">6 pass</option>
+                                 <option value="8 pass">8 pass</option>
+                             </select>
+                         </div>
+                     </div>
 
-                    <div class="row mb-3">
-                        <div class="col-6">
-                            <label class="form-label fw-bold small text-muted">FECHA ENTREGA</label>
-                            <input type="date" id="editFecha" name="fechaEntrega" class="form-control">
-                        </div>
+                     <div class="row mb-3">
+                         <div class="col-6">
+                             <label class="form-label fw-bold small text-muted">FECHA ENTREGA</label>
+                             <input type="date" id="editFecha" name="fechaEntrega" class="form-control">
+                         </div>
 
-                        <div class="col-6">
-                            <label class="form-label fw-bold small text-muted d-block">TURNO</label>
-                            <div class="btn-group w-100" role="group">
-                                <input type="radio" class="btn-check" name="turnoEntrega" id="editTurnoAM" value="AM" autocomplete="off">
-                                <label class="btn btn-outline-warning text-dark fw-bold" for="editTurnoAM">AM</label>
+                         <div class="col-6">
+                             <label class="form-label fw-bold small text-muted d-block">TURNO</label>
+                             <div class="btn-group w-100" role="group">
+                                 <input type="radio" class="btn-check" name="turnoEntrega" id="editTurnoAM" value="AM" autocomplete="off">
+                                 <label class="btn btn-outline-warning text-dark fw-bold" for="editTurnoAM">AM</label>
 
-                                <input type="radio" class="btn-check" name="turnoEntrega" id="editTurnoPM" value="PM" autocomplete="off">
-                                <label class="btn btn-outline-secondary fw-bold" for="editTurnoPM">PM</label>
-                            </div>
-                        </div>
-                    </div>
+                                 <input type="radio" class="btn-check" name="turnoEntrega" id="editTurnoPM" value="PM" autocomplete="off">
+                                 <label class="btn btn-outline-secondary fw-bold" for="editTurnoPM">PM</label>
+                             </div>
+                         </div>
+                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label fw-bold small text-muted">
-                            <i class="fa-solid fa-note-sticky text-warning me-1"></i> NOTA VB / OBSERVACIONES
-                        </label>
-                        <textarea id="editNotaVb" name="notaVb" class="form-control" rows="2" placeholder="Escribe aquí observaciones para Visto Bueno..."></textarea>
-                    </div>
+                     <div class="mb-3">
+                         <label class="form-label fw-bold small text-muted">
+                             <i class="fa-solid fa-note-sticky text-warning me-1"></i> NOTA VB / OBSERVACIONES
+                         </label>
+                         <textarea id="editNotaVb" name="notaVb" class="form-control" rows="2" placeholder="Escribe aquí observaciones para Visto Bueno..."></textarea>
+                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label fw-bold small text-muted">TIPO DESPACHO</label>
-                        <select id="editTipoDespacho" name="tipoDespacho" class="form-select">
-                            <option value="Retiro Taller">Retiro Taller</option>
-                            <option value="Despacho Santiago">Despacho Santiago</option>
-                            <option value="Despacho Región">Despacho Región</option>
-                        </select>
-                    </div>
+                     <div class="mb-3">
+                         <label class="form-label fw-bold small text-muted">TIPO DESPACHO</label>
+                         <select id="editTipoDespacho" name="tipoDespacho" class="form-select">
+                             <option value="Retiro Taller">Retiro Taller</option>
+                             <option value="Despacho Santiago">Despacho Santiago</option>
+                             <option value="Despacho Región">Despacho Región</option>
+                         </select>
+                     </div>
 
-                    <div class="d-flex justify-content-end gap-2">
-                        <button type="button" class="btn btn-white border" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-primary px-4 fw-bold">Guardar</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
+                     <div class="d-flex justify-content-end gap-2">
+                         <button type="button" class="btn btn-white border" data-bs-dismiss="modal">Cancelar</button>
+                         <button type="submit" class="btn btn-primary px-4 fw-bold">Guardar</button>
+                     </div>
+                 </form>
+             </div>
+         </div>
+     </div>
+ </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
+ <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+ <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+ <script>
+     document.addEventListener('DOMContentLoaded', function() {
 
-        // --- 1. CONFIGURACIÓN DRAG & DROP ---
-        var el = document.getElementById('sortable-table');
-        if (el && document.querySelector('.cursor-grab')) {
-            Sortable.create(el, {
-                animation: 150,
-                handle: '.cursor-grab',
-                ghostClass: 'sortable-ghost',
-                forceFallback: true,
-                fallbackOnBody: true,
-                scroll: true,
-                scrollSensitivity: 200,
-                scrollSpeed: 30,
-                bubbleScroll: true,
-                onStart: function(evt) { document.body.classList.add('bloquear-seleccion'); },
-                onEnd: function (evt) {
-                    document.body.classList.remove('bloquear-seleccion');
-                    var newOrderIds = [];
-                    el.querySelectorAll('tr').forEach(function (row) { newOrderIds.push(row.getAttribute('data-id')); });
-                    fetch('/reordenar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newOrderIds) });
-                }
-            });
-        }
+         // --- 1. CONFIGURACIÓN DRAG & DROP ---
+         var el = document.getElementById('sortable-table');
+         if (el && document.querySelector('.cursor-grab')) {
+             Sortable.create(el, {
+                 animation: 150,
+                 handle: '.cursor-grab',
+                 ghostClass: 'sortable-ghost',
+                 forceFallback: true, // IMPORTANTE: Esto ayuda a que el scroll nativo no se bloquee
+                 fallbackOnBody: true,
+                 scroll: true,
+                 scrollSensitivity: 150, // Aumenté esto un poco
+                 scrollSpeed: 20,
+                 bubbleScroll: true,
+                 onStart: function(evt) { document.body.classList.add('bloquear-seleccion'); },
+                 onEnd: function (evt) {
+                     document.body.classList.remove('bloquear-seleccion');
+                     // Detenemos el motor de scroll manual si quedó encendido
+                     detenerScrollManual();
 
-        // --- 4. NUEVO: RECARGA INTELIGENTE (Cada 60 segundos) ---
-        setInterval(function() {
-            // Contamos cuántos checkboxes hay marcados
-            var seleccionados = document.querySelectorAll('.check-item:checked').length;
+                     var newOrderIds = [];
+                     el.querySelectorAll('tr').forEach(function (row) { newOrderIds.push(row.getAttribute('data-id')); });
+                     fetch('/reordenar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newOrderIds) });
+                 }
+             });
+         }
 
-            // Si NO hay nada seleccionado, recargamos para ver trabajos nuevos
-            if (seleccionados === 0) {
-                console.log("Recargando pauta...");
-                window.location.reload();
-            } else {
-                // Si HAY algo seleccionado, esperamos y no molestamos al usuario
-                console.log("Recarga pospuesta: usuario trabajando.");
-            }
-        }, 60000); // 60000 ms = 60 segundos
-    });
+         // --- 4. RECARGA INTELIGENTE (Cada 60 segundos) ---
+         setInterval(function() {
+             var seleccionados = document.querySelectorAll('.check-item:checked').length;
+             if (seleccionados === 0) {
+                 console.log("Recargando pauta...");
+                 window.location.reload();
+             } else {
+                 console.log("Recarga pospuesta: usuario trabajando.");
+             }
+         }, 60000);
+     });
 
-    // --- (LAS DEMÁS FUNCIONES SIGUEN IGUAL) ---
-    function abrirModalEditar(id, maquina, resolucion, pass, fecha, turno, tipo, notavb) {
-        document.getElementById('editId').value = id;
-        document.getElementById('editMaquina').value = maquina;
-        document.getElementById('editResolucion').value = resolucion;
-        document.getElementById('editPass').value = pass ? pass : "";
-        document.getElementById('editFecha').value = fecha;
-        document.getElementById('editNotaVb').value = notavb ? notavb : "";
-        if(tipo) { document.getElementById('editTipoDespacho').value = tipo; }
-        if(turno === 'AM') { document.getElementById('editTurnoAM').checked = true; }
-        else { document.getElementById('editTurnoPM').checked = true; }
-        document.getElementById('urlActual').value = window.location.href;
-        var myModal = new bootstrap.Modal(document.getElementById('modalEditar'));
-        myModal.show();
-    }
+     // ==========================================
+     //  NUEVO: MOTOR DE AUTO-SCROLL "ZONAS CALIENTES"
+     // ==========================================
+     const SCROLL_SPEED_MANUAL = 25; // Velocidad del ascensor
+     const SCROLL_ZONE_MANUAL = 100; // Píxeles desde el borde (Techo y Piso)
+     let scrollInterval = null;
 
-    function toggleAll(source) {
-        var checkboxes = document.getElementsByClassName('check-item');
-        for(var i=0, n=checkboxes.length;i<n;i++) { checkboxes[i].checked = source.checked; }
-        actualizarBarraMasiva();
-    }
+     // Detectar cuando arrastras algo cerca de los bordes
+     document.addEventListener('dragover', function(e) {
+         const mouseY = e.clientY;
+         const viewportHeight = window.innerHeight;
 
-    function actualizarBarraMasiva() {
-        var checkboxes = document.querySelectorAll('.check-item:checked');
-        var barra = document.getElementById('barraMasiva');
-        var container = document.getElementById('idsContainer');
-        document.getElementById('contadorMasivo').innerText = checkboxes.length;
-        var totalM2 = 0.0;
-        checkboxes.forEach(function(chk) {
-            var m2 = parseFloat(chk.getAttribute('data-m2'));
-            if (!isNaN(m2)) { totalM2 += m2; }
-        });
-        document.getElementById('totalM2Masivo').innerText = totalM2.toFixed(2);
-        container.innerHTML = '';
-        if (checkboxes.length > 0) {
-            barra.classList.add('visible');
-            checkboxes.forEach(function(chk) {
-                var input = document.createElement('input');
-                input.type = 'hidden'; input.name = 'ids'; input.value = chk.value;
-                container.appendChild(input);
-            });
-        } else { barra.classList.remove('visible'); }
-    }
-</script>
-</body>
-</html>
+         // Limpiamos intervalo anterior para no acumular velocidad
+         if (scrollInterval) clearInterval(scrollInterval);
+         scrollInterval = null;
+
+         // Lógica: Si estamos muy arriba O muy abajo
+         if (mouseY < SCROLL_ZONE_MANUAL) {
+             // ZONA SUPERIOR: Subir
+             scrollInterval = setInterval(() => { window.scrollBy(0, -SCROLL_SPEED_MANUAL); }, 16);
+         }
+         else if (mouseY > (viewportHeight - SCROLL_ZONE_MANUAL)) {
+             // ZONA INFERIOR: Bajar
+             scrollInterval = setInterval(() => { window.scrollBy(0, SCROLL_SPEED_MANUAL); }, 16);
+         }
+     });
+
+     // Función de seguridad para apagar el motor
+     function detenerScrollManual() {
+         if (scrollInterval) {
+             clearInterval(scrollInterval);
+             scrollInterval = null;
+         }
+     }
+
+     // Apagar motor si soltamos el click o salimos de la ventana
+     document.addEventListener('dragend', detenerScrollManual);
+     document.addEventListener('mouseup', detenerScrollManual);
+     document.addEventListener('dragleave', function(e) {
+         // Si el mouse sale de la ventana del navegador, paramos para que no se vuelva loco
+         if (!e.relatedTarget && !e.toElement) {
+             detenerScrollManual();
+         }
+     });
+     // ==========================================
+
+
+     // --- (LAS DEMÁS FUNCIONES SIGUEN IGUAL) ---
+     function abrirModalEditar(id, maquina, resolucion, pass, fecha, turno, tipo, notavb) {
+         document.getElementById('editId').value = id;
+         document.getElementById('editMaquina').value = maquina;
+         document.getElementById('editResolucion').value = resolucion;
+         document.getElementById('editPass').value = pass ? pass : "";
+         document.getElementById('editFecha').value = fecha;
+         document.getElementById('editNotaVb').value = notavb ? notavb : "";
+         if(tipo) { document.getElementById('editTipoDespacho').value = tipo; }
+         if(turno === 'AM') { document.getElementById('editTurnoAM').checked = true; }
+         else { document.getElementById('editTurnoPM').checked = true; }
+         document.getElementById('urlActual').value = window.location.href;
+         var myModal = new bootstrap.Modal(document.getElementById('modalEditar'));
+         myModal.show();
+     }
+
+     function toggleAll(source) {
+         var checkboxes = document.getElementsByClassName('check-item');
+         for(var i=0, n=checkboxes.length;i<n;i++) { checkboxes[i].checked = source.checked; }
+         actualizarBarraMasiva();
+     }
+
+     function actualizarBarraMasiva() {
+         var checkboxes = document.querySelectorAll('.check-item:checked');
+         var barra = document.getElementById('barraMasiva');
+         var container = document.getElementById('idsContainer');
+         document.getElementById('contadorMasivo').innerText = checkboxes.length;
+         var totalM2 = 0.0;
+         checkboxes.forEach(function(chk) {
+             var m2 = parseFloat(chk.getAttribute('data-m2'));
+             if (!isNaN(m2)) { totalM2 += m2; }
+         });
+         document.getElementById('totalM2Masivo').innerText = totalM2.toFixed(2);
+         container.innerHTML = '';
+         if (checkboxes.length > 0) {
+             barra.classList.add('visible');
+             checkboxes.forEach(function(chk) {
+                 var input = document.createElement('input');
+                 input.type = 'hidden'; input.name = 'ids'; input.value = chk.value;
+                 container.appendChild(input);
+             });
+         } else { barra.classList.remove('visible'); }
+     }
+ </script>
+ </body>
+ </html>
