@@ -40,6 +40,7 @@ public class SecurityConfig {
     public UserDetailsService userDetailsService() {
         // Usuarios (Contraseña 1234 para todos)
         UserDetails jorge = User.withDefaultPasswordEncoder().username("jorge").password("gerencia1234").roles("ADMIN").build();
+        UserDetails rufino = User.withDefaultPasswordEncoder().username("rufino").password("gerencia1234").roles("ADMIN").build();
         UserDetails pamela = User.withDefaultPasswordEncoder().username("pamela").password("ventas1234").roles("VENTAS").build();
         UserDetails anita = User.withDefaultPasswordEncoder().username("anita").password("ventas1234").roles("VENTAS").build();
         UserDetails alex = User.withDefaultPasswordEncoder().username("alex").password("prensa1234").roles("PREPRENSA").build();
@@ -48,6 +49,6 @@ public class SecurityConfig {
         UserDetails german = User.withDefaultPasswordEncoder().username("german").password("produccion1234").roles("PRODUCCION").build();
         UserDetails diego = User.withDefaultPasswordEncoder().username("diego").password("produccion1234").roles("PRODUCCION").build();
 
-        return new InMemoryUserDetailsManager(jorge, pamela, anita, alex, matias, gloria, german, diego);
+        return new InMemoryUserDetailsManager(jorge,rufino, pamela, anita, alex, matias, gloria, german, diego);
     }
 }
